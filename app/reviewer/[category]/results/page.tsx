@@ -201,23 +201,26 @@ export default function ResultsPage({
                 <p>{question.explanation}</p>
               </div>
               {question.source && (
-                <div className="pt-2 border-t">
-                  <p className="font-medium">Source:</p>
-                  <div className="flex items-center gap-2">
-                    <span>{question.source.name}</span>
-                    {question.source.url && (
-                      <a
-                        href={question.source.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center text-primary hover:text-primary/80"
-                      >
-                        <ExternalLink className="h-4 w-4 ml-1" />
-                        <span className="sr-only">Open source link</span>
-                      </a>
-                    )}
+                <>
+                  <Separator className="my-4" />
+                  <div>
+                    <p className="font-medium">Source:</p>
+                    <div className="flex items-center gap-2">
+                      <span>{question.source.name}</span>
+                      {question.source.url && (
+                        <a
+                          href={question.source.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center text-primary hover:text-primary/80"
+                        >
+                          <ExternalLink className="h-4 w-4 ml-1" />
+                          <span className="sr-only">Open source link</span>
+                        </a>
+                      )}
+                    </div>
                   </div>
-                </div>
+                </>
               )}
             </CardContent>
           </Card>

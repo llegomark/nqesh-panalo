@@ -64,7 +64,7 @@ export default function Home() {
             <CardContent>
               <p className="text-sm text-muted-foreground">{category.questionCount} questions to review</p>
             </CardContent>
-            <CardFooter className="bg-muted/50 pt-2">
+            <CardFooter>
               <Link href={`/reviewer/${category.id}`} className="w-full">
                 <Button className="w-full">Start Reviewing</Button>
               </Link>
