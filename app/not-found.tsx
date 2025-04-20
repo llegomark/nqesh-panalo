@@ -13,7 +13,7 @@ export default function NotFound() {
         <h1 className="text-4xl font-bold">404</h1>
         
         <div className="space-y-2">
-          <p className="text-xl">The page you're looking for doesn't exist.</p>
+          <p className="text-xl">The page you&apos;re looking for doesn&apos;t exist.</p>
           <p className="text-muted-foreground">
             The reviewer section or category you requested could not be found.
           </p>
