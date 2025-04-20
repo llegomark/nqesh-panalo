@@ -3,8 +3,9 @@ import { notFound } from "next/navigation"
 import { ReviewerContent } from "@/components/reviewer-content"
 import { headers } from "next/headers"
 
+// Updated interface to match Next.js 15 typing requirements
 interface ReviewerPageProps {
-  params: { category: string }
+  params: Promise<{ category: string }>
 }
 
 // Helper to build the base URL at request time (not exported)
