@@ -36,14 +36,6 @@ export default function ResultsPage({
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  // track mounting to avoid setting state on unmounted
-  const [isMounted, setIsMounted] = useState(true)
-  useEffect(() => {
-    return () => {
-      setIsMounted(false)
-    }
-  }, [])
-
   useEffect(() => {
     const resultsData = searchParams.get("data")
     if (!resultsData) {
@@ -51,13 +43,14 @@ export default function ResultsPage({
       return
     }
 
+    const controller = new AbortController()
+    const signal = controller.signal
+
     const getResults = async () => {
       try {
         // decode the quiz results from the URL
         const decodedData = JSON.parse(atob(resultsData))
-        if (isMounted) {
-          setResults(decodedData)
-        }
+        setResults(decodedData)
 
         // fetch category details for the title
         try {
@@ -66,35 +59,37 @@ export default function ResultsPage({
           const baseUrl = `${protocol}//${host}`
 
           const response = await fetch(
-            `${baseUrl}/api/reviewer/categories/${category}`
+            `${baseUrl}/api/reviewer/categories/${category}`,
+            { signal }
           )
 
           if (response.ok) {
             const data = await response.json()
-            if (isMounted) {
-              setCategoryTitle(data.title)
-            }
+            setCategoryTitle(data.title)
           }
         } catch (err) {
-          console.error("Error fetching category:", err)
-          if (isMounted) {
-            setError("Failed to load category details")
+          // Check if this is an abort error, which we can safely ignore
+          if (err instanceof DOMException && err.name === 'AbortError') {
+            return
           }
+          console.error("Error fetching category:", err)
+          setError("Failed to load category details")
         }
 
-        if (isMounted) {
-          setLoading(false)
-        }
+        setLoading(false)
       } catch (err) {
         console.error("Error parsing results data:", err)
-        if (isMounted) {
-          router.push(`/reviewer/${category}`)
-        }
+        router.push(`/reviewer/${category}`)
       }
     }
 
     getResults()
-  }, [category, router, searchParams, isMounted])
+
+    // Clean up function that aborts fetch requests when component unmounts
+    return () => {
+      controller.abort()
+    }
+  }, [category, router, searchParams])
 
   if (loading) {
     return (

@@ -4,6 +4,8 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from "@/components/ui/button"
 import { BookOpen, Brain, Building, Users } from "lucide-react"
 
+export const dynamic = 'force-static'
+
 export const metadata: Metadata = {
   title: "NQESH Reviewer for Aspiring School Heads",
   description: "Professional reviewer application for the National Qualifying Examination for School Heads (NQESH)",

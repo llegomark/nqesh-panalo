@@ -28,8 +28,9 @@ export async function generateMetadata({
   try {
     const response = await fetch(
       `${baseUrl}/api/reviewer/categories/${categoryId}`,
-      { headers: { "Content-Type": "application/json" } }
+      { next: { revalidate: 3600 } }  // Revalidate every hour
     )
+    
     if (!response.ok) {
       return {
         title: "NQESH Reviewer",
@@ -61,8 +62,9 @@ export default async function ReviewerPage({
   try {
     const categoryResponse = await fetch(
       `${baseUrl}/api/reviewer/categories/${categoryId}`,
-      { headers: { "Content-Type": "application/json" } }
+      { next: { revalidate: 3600 } }  // Revalidate every hour
     )
+    
     if (!categoryResponse.ok) notFound()
     const category = await categoryResponse.json()
 
@@ -70,9 +72,6 @@ export default async function ReviewerPage({
       <div className="container max-w-3xl mx-auto py-6 px-4">
         <div className="space-y-2">
           <h1 className="text-2xl font-bold">{category.title} Reviewer</h1>
-          <p className="text-muted-foreground">
-            Answer the following questions to test your knowledge
-          </p>
         </div>
 
         <div className="mt-6">

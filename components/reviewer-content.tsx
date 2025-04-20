@@ -25,6 +25,9 @@ export function ReviewerContent({ categoryId }: ReviewerContentProps) {
   const [timeExpired, setTimeExpired] = useState(false)
 
   useEffect(() => {
+    const controller = new AbortController()
+    const signal = controller.signal
+    
     const fetchQuestions = async () => {
       try {
         // Ensure we have a proper URL with protocol
@@ -32,7 +35,7 @@ export function ReviewerContent({ categoryId }: ReviewerContentProps) {
         const host = window.location.host
         const baseUrl = `${protocol}//${host}`
 
-        const response = await fetch(`${baseUrl}/api/reviewer/${categoryId}`)
+        const response = await fetch(`${baseUrl}/api/reviewer/${categoryId}`, { signal })
 
         if (!response.ok) throw new Error("Failed to fetch questions")
 
@@ -48,12 +51,21 @@ export function ReviewerContent({ categoryId }: ReviewerContentProps) {
         setQuestions(shuffledQuestions)
         setIsLoading(false)
       } catch (error) {
+        // Don't log abort errors as they're expected when component unmounts
+        if (error instanceof DOMException && error.name === 'AbortError') {
+          return
+        }
         console.error("Error fetching questions:", error)
         setIsLoading(false)
       }
     }
 
     fetchQuestions()
+    
+    // Clean up function that aborts fetch when component unmounts
+    return () => {
+      controller.abort()
+    }
   }, [categoryId])
 
   const handleAnswerSelect = (answerId: string) => {
