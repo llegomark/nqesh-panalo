@@ -7,8 +7,8 @@ interface ReviewerPageProps {
   params: { category: string }
 }
 
-// Helper to build the base URL at request time
-export async function getBaseUrl(): Promise<string> {
+// Helper to build the base URL at request time (not exported)
+async function getBaseUrl(): Promise<string> {
   if (process.env.NEXT_PUBLIC_APP_URL) {
     return process.env.NEXT_PUBLIC_APP_URL
   }
