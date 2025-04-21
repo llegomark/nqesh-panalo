@@ -54,7 +54,8 @@ export async function saveReviewResults(
   } catch (error) {
     console.error("Error saving results:", error);
     // Check if error is an instance of Error to access message property safely
-    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
     return { success: false, error: `Failed to save results: ${errorMessage}` };
   }
 }

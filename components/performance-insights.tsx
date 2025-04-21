@@ -1,4 +1,4 @@
-// components/performance-insights.tsx
+// FILE: components/performance-insights.tsx
 "use client";
 
 import type { Question } from "@/lib/types";
@@ -19,10 +19,12 @@ import {
   YAxis,
 } from "recharts";
 
-interface PerformanceInsightsProps {
+// --- ADD export HERE ---
+export interface PerformanceInsightsProps {
   results: (Question & { timeSpent: number })[];
 }
 
+// --- KEEP export HERE ---
 export function PerformanceInsights({ results }: PerformanceInsightsProps) {
   // Prepare data for time spent per question chart
   const timeSpentData = results.map((result, index) => ({
@@ -30,20 +32,21 @@ export function PerformanceInsights({ results }: PerformanceInsightsProps) {
     value: result.timeSpent,
     correct: result.userAnswer === result.correctAnswer,
     questionId: result.id,
-    userAnswer: result.userAnswer, // Added this field to fix the TypeScript error
-    status: result.userAnswer === result.correctAnswer 
-      ? "correct" 
-      : result.userAnswer === null 
-        ? "unanswered" 
-        : "incorrect"
+    userAnswer: result.userAnswer,
+    status:
+      result.userAnswer === result.correctAnswer
+        ? "correct"
+        : result.userAnswer === null
+          ? "unanswered"
+          : "incorrect",
   }));
 
   // Prepare data for correct vs incorrect pie chart
   const correctCount = results.filter(
-    (r) => r.userAnswer === r.correctAnswer
+    (r) => r.userAnswer === r.correctAnswer,
   ).length;
   const incorrectCount = results.filter(
-    (r) => r.userAnswer !== null && r.userAnswer !== r.correctAnswer
+    (r) => r.userAnswer !== null && r.userAnswer !== r.correctAnswer,
   ).length;
   const unansweredCount = results.filter((r) => r.userAnswer === null).length;
 
@@ -62,14 +65,22 @@ export function PerformanceInsights({ results }: PerformanceInsightsProps) {
   }));
 
   // Calculate average time spent
-  const totalTimeSpent = results.reduce((acc, result) => acc + result.timeSpent, 0);
-  const averageTimeSpent = Math.round(totalTimeSpent / results.length);
+  const totalTimeSpent = results.reduce(
+    (acc, result) => acc + result.timeSpent,
+    0,
+  );
+  const averageTimeSpent =
+    results.length > 0 ? Math.round(totalTimeSpent / results.length) : 0; // Avoid division by zero
 
   // Calculate fastest and slowest times
-  const fastestTime = Math.min(...results.map(r => r.timeSpent || Infinity));
-  const slowestTime = Math.max(...results.map(r => r.timeSpent || 0));
+  const validTimes = results
+    .map((r) => r.timeSpent)
+    .filter((t) => t !== undefined && t !== null); // Filter out potential undefined/null
+  const fastestTime = validTimes.length > 0 ? Math.min(...validTimes) : 0;
+  const slowestTime = validTimes.length > 0 ? Math.max(...validTimes) : 0;
 
   return (
+    // --- NO STYLE CHANGES HERE ---
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       {/* Time spent per question */}
       <Card className="w-full">
@@ -79,24 +90,31 @@ export function PerformanceInsights({ results }: PerformanceInsightsProps) {
         <CardContent className="p-1 sm:p-4">
           <div className="w-full h-64">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={timeSpentData} margin={{ top: 20, right: 20, left: 5, bottom: 25 }}>
+              <BarChart
+                data={timeSpentData}
+                margin={{ top: 20, right: 20, left: 5, bottom: 25 }}
+              >
                 <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
-                <XAxis 
-                  dataKey="name" 
-                  tick={{ fontSize: 12 }} 
-                  interval={results.length > 10 ? 1 : 0} 
-                  angle={-45} 
+                <XAxis
+                  dataKey="name"
+                  tick={{ fontSize: 12 }}
+                  interval={results.length > 10 ? 1 : 0}
+                  angle={-45}
                   textAnchor="end"
                   height={40}
                 />
-                <YAxis 
+                <YAxis
                   tick={{ fontSize: 12 }}
-                  label={{ 
-                    value: 'Seconds', 
-                    angle: -90, 
-                    position: 'insideLeft', 
-                    style: { textAnchor: 'middle', fontSize: '12px', fill: 'var(--muted-foreground)' } 
-                  }} 
+                  label={{
+                    value: "Seconds",
+                    angle: -90,
+                    position: "insideLeft",
+                    style: {
+                      textAnchor: "middle",
+                      fontSize: "12px",
+                      fill: "var(--muted-foreground)",
+                    },
+                  }}
                 />
                 <Tooltip
                   content={({ active, payload }) => {
@@ -104,9 +122,18 @@ export function PerformanceInsights({ results }: PerformanceInsightsProps) {
                       const data = payload[0].payload;
                       return (
                         <div className="bg-background border p-2 rounded-md shadow-sm">
-                          <p className="font-medium">Question {data.name.substring(1)}</p>
+                          <p className="font-medium">
+                            Question {data.name.substring(1)}
+                          </p>
                           <p>Time spent: {data.value} seconds</p>
-                          <p>Status: {data.status === "correct" ? "Correct" : data.status === "unanswered" ? "Unanswered" : "Incorrect"}</p>
+                          <p>
+                            Status:{" "}
+                            {data.status === "correct"
+                              ? "Correct"
+                              : data.status === "unanswered"
+                                ? "Unanswered"
+                                : "Incorrect"}
+                          </p>
                         </div>
                       );
                     }
@@ -115,9 +142,15 @@ export function PerformanceInsights({ results }: PerformanceInsightsProps) {
                 />
                 <Bar dataKey="value" fill="#3b82f6" maxBarSize={40}>
                   {timeSpentData.map((entry, index) => (
-                    <Cell 
-                      key={`cell-${index}`} 
-                      fill={entry.status === "correct" ? "#22c55e" : entry.status === "unanswered" ? "#94a3b8" : "#ef4444"} 
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={
+                        entry.status === "correct"
+                          ? "#22c55e"
+                          : entry.status === "unanswered"
+                            ? "#94a3b8"
+                            : "#ef4444"
+                      }
                     />
                   ))}
                 </Bar>
@@ -148,7 +181,9 @@ export function PerformanceInsights({ results }: PerformanceInsightsProps) {
                   outerRadius={70}
                   innerRadius={30}
                   dataKey="value"
-                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                  label={({ name, percent }) =>
+                    `${name} ${(percent * 100).toFixed(0)}%`
+                  }
                   labelLine={false}
                 >
                   {pieChartData.map((entry, index) => (
@@ -162,7 +197,10 @@ export function PerformanceInsights({ results }: PerformanceInsightsProps) {
                       return (
                         <div className="bg-background border p-2 rounded-md shadow-sm">
                           <p className="font-medium">{data.name}</p>
-                          <p>{data.value} questions ({((data.value / results.length) * 100).toFixed(1)}%)</p>
+                          <p>
+                            {data.value} questions (
+                            {((data.value / results.length) * 100).toFixed(1)}%)
+                          </p>
                         </div>
                       );
                     }
@@ -199,31 +237,44 @@ export function PerformanceInsights({ results }: PerformanceInsightsProps) {
         <CardContent className="p-1 sm:p-4">
           <div className="w-full h-72">
             <ResponsiveContainer width="100%" height="100%">
-              <ScatterChart margin={{ top: 20, right: 30, bottom: 40, left: 40 }}>
+              <ScatterChart
+                margin={{ top: 20, right: 30, bottom: 40, left: 40 }}
+              >
                 <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
-                <XAxis 
-                  type="number" 
-                  dataKey="x" 
-                  name="Question" 
+                <XAxis
+                  type="number"
+                  dataKey="x"
+                  name="Question"
                   domain={[0.5, results.length + 0.5]}
-                  ticks={Array.from({ length: results.length }, (_, i) => i + 1)}
-                  label={{ 
-                    value: 'Question Number', 
-                    position: 'bottom', 
+                  ticks={Array.from(
+                    { length: results.length },
+                    (_, i) => i + 1,
+                  )}
+                  label={{
+                    value: "Question Number",
+                    position: "bottom",
                     offset: 15,
-                    style: { textAnchor: 'middle', fontSize: '12px', fill: 'var(--muted-foreground)' } 
+                    style: {
+                      textAnchor: "middle",
+                      fontSize: "12px",
+                      fill: "var(--muted-foreground)",
+                    },
                   }}
                   tick={{ fontSize: 11 }}
                 />
-                <YAxis 
-                  type="number" 
-                  dataKey="y" 
-                  name="Time" 
-                  label={{ 
-                    value: 'Time (seconds)', 
-                    angle: -90, 
-                    position: 'insideLeft',
-                    style: { textAnchor: 'middle', fontSize: '12px', fill: 'var(--muted-foreground)' } 
+                <YAxis
+                  type="number"
+                  dataKey="y"
+                  name="Time"
+                  label={{
+                    value: "Time (seconds)",
+                    angle: -90,
+                    position: "insideLeft",
+                    style: {
+                      textAnchor: "middle",
+                      fontSize: "12px",
+                      fill: "var(--muted-foreground)",
+                    },
                   }}
                   tick={{ fontSize: 11 }}
                 />
@@ -235,48 +286,64 @@ export function PerformanceInsights({ results }: PerformanceInsightsProps) {
                         <div className="bg-background border p-2 rounded-md shadow-sm">
                           <p className="font-medium">Question {data.x}</p>
                           <p>Time spent: {data.y} seconds</p>
-                          <p>Status: {data.correct ? "Correct" : data.userAnswer === null ? "Unanswered" : "Incorrect"}</p>
+                          <p>
+                            Status:{" "}
+                            {data.correct
+                              ? "Correct"
+                              : data.userAnswer === null
+                                ? "Unanswered"
+                                : "Incorrect"}
+                          </p>
                         </div>
                       );
                     }
                     return null;
                   }}
                 />
-                <Scatter 
-                  name="Correct" 
-                  data={scatterData.filter(d => d.correct)} 
-                  fill="#22c55e" 
+                <Scatter
+                  name="Correct"
+                  data={scatterData.filter((d) => d.correct)}
+                  fill="#22c55e"
                   shape="circle"
-                  legendType="circle" 
+                  legendType="circle"
                 />
-                <Scatter 
-                  name="Incorrect" 
-                  data={scatterData.filter(d => !d.correct && d.userAnswer !== null)} 
-                  fill="#ef4444" 
+                <Scatter
+                  name="Incorrect"
+                  data={scatterData.filter(
+                    (d) => !d.correct && d.userAnswer !== null,
+                  )}
+                  fill="#ef4444"
                   shape="circle"
-                  legendType="circle" 
+                  legendType="circle"
                 />
                 {unansweredCount > 0 && (
-                  <Scatter 
-                    name="Unanswered" 
-                    data={scatterData.filter(d => d.userAnswer === null)} 
-                    fill="#94a3b8" 
+                  <Scatter
+                    name="Unanswered"
+                    data={scatterData.filter((d) => d.userAnswer === null)}
+                    fill="#94a3b8"
                     shape="circle"
-                    legendType="circle" 
+                    legendType="circle"
                   />
                 )}
-                <Legend 
-                  verticalAlign="top" 
+                <Legend
+                  verticalAlign="top"
                   height={36}
-                  wrapperStyle={{ fontSize: '12px' }}
+                  wrapperStyle={{ fontSize: "12px" }}
                 />
               </ScatterChart>
             </ResponsiveContainer>
           </div>
           <div className="mt-4 text-sm text-muted-foreground">
-            <p>This scatter plot shows your time spent on each question and whether you answered correctly.</p>
+            <p>
+              This scatter plot shows your time spent on each question and
+              whether you answered correctly.
+            </p>
             <p className="mt-1">
-              {results.filter(r => r.userAnswer === r.correctAnswer && r.timeSpent < averageTimeSpent).length > 0
+              {results.filter(
+                (r) =>
+                  r.userAnswer === r.correctAnswer &&
+                  r.timeSpent < averageTimeSpent,
+              ).length > 0
                 ? "You answered some questions correctly in less than average time - excellent efficiency!"
                 : "Try to balance speed and accuracy for better overall performance."}
             </p>

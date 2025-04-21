@@ -11,21 +11,26 @@ interface TimerProps {
   stopped?: boolean;
 }
 
-export function Timer({ duration, onExpire, onTimeUpdate, stopped = false }: TimerProps) {
+export function Timer({
+  duration,
+  onExpire,
+  onTimeUpdate,
+  stopped = false,
+}: TimerProps) {
   const [timeLeft, setTimeLeft] = useState(duration);
   const [isRunning, setIsRunning] = useState(true);
   const hasExpired = useRef(false);
   const startTimeRef = useRef(Date.now());
-  
+
   // Handle stopping the timer and reporting time
   useEffect(() => {
     if (stopped && isRunning) {
       setIsRunning(false);
-      
+
       // Calculate time spent accurately based on actual elapsed time
       const elapsedMs = Date.now() - startTimeRef.current;
       const timeSpentSeconds = Math.min(Math.round(elapsedMs / 1000), duration);
-      
+
       // Report time spent to parent component
       if (onTimeUpdate) {
         onTimeUpdate(timeSpentSeconds);
@@ -42,7 +47,7 @@ export function Timer({ duration, onExpire, onTimeUpdate, stopped = false }: Tim
         if (prevTime <= 1) {
           clearInterval(timer);
           setIsRunning(false);
-          
+
           // When expired, report the full duration
           if (onTimeUpdate) {
             onTimeUpdate(duration);
@@ -70,7 +75,7 @@ export function Timer({ duration, onExpire, onTimeUpdate, stopped = false }: Tim
     startTimeRef.current = Date.now();
     setTimeLeft(duration);
     setIsRunning(true);
-    
+
     return () => {
       hasExpired.current = false;
     };

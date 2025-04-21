@@ -51,24 +51,21 @@ export function ReviewerContent({
   }, [currentQuestionIndex]);
 
   // Time update handler - simpler and more direct
-  const handleTimeUpdate = useCallback(
-    () => {
-      const currentQuestion = questions[currentQuestionIndex];
-      if (!currentQuestion || isAnswered || timeExpired) return; // Prevent updates after answering/time expiry
+  const handleTimeUpdate = useCallback(() => {
+    const currentQuestion = questions[currentQuestionIndex];
+    if (!currentQuestion || isAnswered || timeExpired) return; // Prevent updates after answering/time expiry
 
-      // Calculate elapsed time *more accurately*
-      const elapsedSeconds = Math.round((Date.now() - startTime) / 1000);
-      const maxDuration = 120; // Assuming Timer duration is 120s
-      const timeSpent = Math.min(elapsedSeconds, maxDuration); // Cap at max duration
+    // Calculate elapsed time *more accurately*
+    const elapsedSeconds = Math.round((Date.now() - startTime) / 1000);
+    const maxDuration = 120; // Assuming Timer duration is 120s
+    const timeSpent = Math.min(elapsedSeconds, maxDuration); // Cap at max duration
 
-      // Store the time data for the current question
-      setQuestionTimes((prev) => ({
-        ...prev,
-        [currentQuestion.id]: timeSpent,
-      }));
-    },
-    [currentQuestionIndex, questions, isAnswered, timeExpired, startTime],
-  );
+    // Store the time data for the current question
+    setQuestionTimes((prev) => ({
+      ...prev,
+      [currentQuestion.id]: timeSpent,
+    }));
+  }, [currentQuestionIndex, questions, isAnswered, timeExpired, startTime]);
 
   const handleAnswerSelect = (answerId: string) => {
     if (isAnswered || timeExpired) return;
@@ -94,7 +91,6 @@ export function ReviewerContent({
       ...prev,
       [currentQuestion.id]: finalTimeSpent,
     }));
-
 
     if (isCorrect) {
       setScore((prevScore) => prevScore + 1);
@@ -123,7 +119,7 @@ export function ReviewerContent({
         index === currentQuestionIndex ? { ...q, userAnswer: null } : q,
       );
       setQuestions(updatedQuestions);
-       setQuestionTimes((prev) => ({
+      setQuestionTimes((prev) => ({
         ...prev,
         [currentQuestion.id]: 120, // Record max time
       }));
@@ -139,16 +135,18 @@ export function ReviewerContent({
     // Ensure final time for the last question is recorded if answered quickly before moving on
     const lastQuestionId = questions[questions.length - 1]?.id;
     if (lastQuestionId && !questionTimes[lastQuestionId] && isAnswered) {
-       const elapsedSeconds = Math.round((Date.now() - startTime) / 1000);
-       const maxDuration = 120;
-       questionTimes[lastQuestionId] = Math.min(elapsedSeconds, maxDuration);
+      const elapsedSeconds = Math.round((Date.now() - startTime) / 1000);
+      const maxDuration = 120;
+      questionTimes[lastQuestionId] = Math.min(elapsedSeconds, maxDuration);
     }
 
     // Gather user answers with time data
     const userAnswers: AnswerWithTime[] = questions.map((q) => ({
       questionId: q.id,
       userAnswer: q.userAnswer !== undefined ? q.userAnswer : null, // Ensure userAnswer is present or null
-      timeSpent: questionTimes[q.id] || (q.userAnswer === undefined && timeExpired ? 120 : 0), // Default or max time
+      timeSpent:
+        questionTimes[q.id] ||
+        (q.userAnswer === undefined && timeExpired ? 120 : 0), // Default or max time
     }));
 
     console.log("Submitting data via Server Action:", {
@@ -171,14 +169,20 @@ export function ReviewerContent({
         toast.success("Results submitted successfully!");
         router.push(`/reviewer/${categoryId}/results/${result.id}`);
       } else {
-        console.error("Error submitting results via Server Action:", result.error);
-        toast.error(`Failed to submit results: ${result.error || 'Unknown error'}`);
+        console.error(
+          "Error submitting results via Server Action:",
+          result.error,
+        );
+        toast.error(
+          `Failed to submit results: ${result.error || "Unknown error"}`,
+        );
         // Optionally, handle fallback to searchParams method here if needed,
         // but the goal is to rely on the ID method.
       }
     } catch (error) {
       console.error("Error calling Server Action:", error);
-      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
       toast.error(`An unexpected error occurred: ${errorMessage}`);
       // Handle unexpected errors during the action call
     } finally {
