@@ -7,7 +7,6 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Button } from "@/components/ui/button";
 import type { Question } from "@/lib/types";
 import { Timer } from "@/components/timer";
-// Removed shuffleArray import as it's now handled server-side
 import { ExternalLink, Loader2 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 
@@ -25,6 +24,7 @@ export function ReviewerContent({ categoryId, initialQuestions }: ReviewerConten
   const [score, setScore] = useState(0);
   const [timeExpired, setTimeExpired] = useState(false);
   const [isPending, startTransition] = useTransition();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleAnswerSelect = (answerId: string) => {
     if (isAnswered || timeExpired) return;
@@ -46,22 +46,67 @@ export function ReviewerContent({ categoryId, initialQuestions }: ReviewerConten
   };
 
   const handleNextQuestion = () => {
-     startTransition(() => {
+    startTransition(() => {
       if (currentQuestionIndex < questions.length - 1) {
         setCurrentQuestionIndex((prevIndex) => prevIndex + 1);
         setSelectedAnswer(null);
         setIsAnswered(false);
         setTimeExpired(false);
       } else {
-        const userAnswers = questions.map(q => ({ questionId: q.id, userAnswer: q.userAnswer }));
-        const resultsParams = new URLSearchParams({
-          score: score.toString(),
-          total: questions.length.toString(),
-          answers: btoa(JSON.stringify(userAnswers)),
-        });
-        router.push(`/reviewer/${categoryId}/results?${resultsParams.toString()}`);
+        // Submit results to our API
+        submitResults();
       }
     });
+  };
+
+  const submitResults = async () => {
+    try {
+      setIsSubmitting(true);
+      
+      const userAnswers = questions.map(q => ({ 
+        questionId: q.id, 
+        userAnswer: q.userAnswer 
+      }));
+      
+      const payload = {
+        categoryId,
+        score,
+        total: questions.length,
+        answers: userAnswers
+      };
+      
+      const response = await fetch('/api/results', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to save results');
+      }
+      
+      const { id } = await response.json();
+      router.push(`/reviewer/${categoryId}/results/${id}`);
+    } catch (error) {
+      console.error('Error submitting results:', error);
+      // Fallback to the old method if the API fails
+      const userAnswers = questions.map(q => ({ 
+        questionId: q.id, 
+        userAnswer: q.userAnswer 
+      }));
+      
+      const resultsParams = new URLSearchParams({
+        score: score.toString(),
+        total: questions.length.toString(),
+        answers: btoa(JSON.stringify(userAnswers)),
+      });
+      
+      router.push(`/reviewer/${categoryId}/results?${resultsParams.toString()}`);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleTimeExpired = () => {
@@ -113,7 +158,6 @@ export function ReviewerContent({ categoryId, initialQuestions }: ReviewerConten
           <CardTitle className="text-xl">{currentQuestion.question}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          {/* === ORIGINAL STYLING LOGIC RESTORED === */}
           {currentQuestion.options.map((option) => {
             const isCorrectAnswer = option.id === currentQuestion.correctAnswer;
             const isSelectedAnswer = selectedAnswer === option.id;
@@ -133,8 +177,6 @@ export function ReviewerContent({ categoryId, initialQuestions }: ReviewerConten
             } else {
               // Default style before answer is revealed
               buttonStyle += "hover:bg-muted/50";
-               // Optionally add distinct style for the selected answer before confirmation
-               // if (isSelectedAnswer) { buttonStyle += " ring-2 ring-primary"; }
             }
 
             return (
@@ -142,19 +184,18 @@ export function ReviewerContent({ categoryId, initialQuestions }: ReviewerConten
                 key={option.id}
                 className={buttonStyle}
                 onClick={() => handleAnswerSelect(option.id)}
-                disabled={isAnswered || timeExpired || isPending}
+                disabled={isAnswered || timeExpired || isPending || isSubmitting}
                 aria-pressed={selectedAnswer === option.id}
               >
                 <span className="text-wrap">{option.text}</span>
               </button>
             );
           })}
-          {/* === END OF ORIGINAL STYLING LOGIC === */}
         </CardContent>
 
         {(isAnswered || timeExpired) && (
           <CardFooter className="flex flex-col items-start border-t pt-4">
-             <div className="py-4 w-full space-y-4"> {/* Changed from pb-0 to py-4 */}
+             <div className="py-4 w-full space-y-4">
               <div>
                 <h3 className="font-medium mb-2">Explanation:</h3>
                 <p>{currentQuestion.explanation}</p>
@@ -183,11 +224,16 @@ export function ReviewerContent({ categoryId, initialQuestions }: ReviewerConten
             </div>
             <Button
               onClick={handleNextQuestion}
-              className="ml-auto w-full sm:w-auto" // Make button full width on small screens
-              disabled={isPending}
+              className="ml-auto w-full sm:w-auto"
+              disabled={isPending || isSubmitting}
             >
-               {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-              {currentQuestionIndex < questions.length - 1 ? "Next Question" : "View Results"}
+              {(isPending || isSubmitting) ? (
+                <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Processing...</>
+              ) : currentQuestionIndex < questions.length - 1 ? (
+                "Next Question"
+              ) : (
+                "View Results"
+              )}
             </Button>
           </CardFooter>
         )}
