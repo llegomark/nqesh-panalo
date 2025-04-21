@@ -1,7 +1,7 @@
 // components/reviewer-content.tsx
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import {
   Card,
@@ -34,6 +34,20 @@ export function ReviewerContent({
   const [timeExpired, setTimeExpired] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // State to track time spent on each question
+  const [questionTimes, setQuestionTimes] = useState<Record<string, number>>({});
+
+  // Time update handler - simpler and more direct
+  const handleTimeUpdate = useCallback((timeSpent: number) => {
+    const currentQuestion = questions[currentQuestionIndex];
+    
+    // Store the time data for the current question
+    setQuestionTimes(prev => ({
+      ...prev,
+      [currentQuestion.id]: timeSpent
+    }));
+  }, [currentQuestionIndex, questions]);
 
   const handleAnswerSelect = (answerId: string) => {
     if (isAnswered || timeExpired) return;
@@ -68,14 +82,35 @@ export function ReviewerContent({
     });
   };
 
+  const handleTimeExpired = () => {
+    if (!isAnswered) {
+      const updatedQuestions = questions.map((q, index) =>
+        index === currentQuestionIndex ? { ...q, userAnswer: null } : q,
+      );
+      setQuestions(updatedQuestions);
+    }
+    setTimeExpired(true);
+    setIsAnswered(true);
+  };
+
   const submitResults = async () => {
     try {
       setIsSubmitting(true);
 
+      // Gather user answers with time data
       const userAnswers = questions.map((q) => ({
         questionId: q.id,
         userAnswer: q.userAnswer,
+        timeSpent: questionTimes[q.id] || 0,
       }));
+
+      console.log("Submitting data:", { 
+        categoryId, 
+        score, 
+        total: questions.length, 
+        answers: userAnswers,
+        times: questionTimes 
+      });
 
       const payload = {
         categoryId,
@@ -104,6 +139,7 @@ export function ReviewerContent({
       const userAnswers = questions.map((q) => ({
         questionId: q.id,
         userAnswer: q.userAnswer,
+        timeSpent: questionTimes[q.id] || 0,
       }));
 
       const resultsParams = new URLSearchParams({
@@ -118,17 +154,6 @@ export function ReviewerContent({
     } finally {
       setIsSubmitting(false);
     }
-  };
-
-  const handleTimeExpired = () => {
-    if (!isAnswered) {
-      const updatedQuestions = questions.map((q, index) =>
-        index === currentQuestionIndex ? { ...q, userAnswer: null } : q,
-      );
-      setQuestions(updatedQuestions);
-    }
-    setTimeExpired(true);
-    setIsAnswered(true);
   };
 
   if (questions.length === 0) {
@@ -158,6 +183,7 @@ export function ReviewerContent({
             key={currentQuestionIndex}
             duration={120}
             onExpire={handleTimeExpired}
+            onTimeUpdate={handleTimeUpdate}
             stopped={isAnswered || timeExpired}
           />
         </div>
@@ -172,24 +198,21 @@ export function ReviewerContent({
           {currentQuestion.options.map((option) => {
             const isCorrectAnswer = option.id === currentQuestion.correctAnswer;
             const isSelectedAnswer = selectedAnswer === option.id;
-            // Determine the styling based on whether the question is answered and which option this is
+            
             let buttonStyle =
               "w-full text-left p-4 rounded-md border transition-colors ";
 
             if (isAnswered || timeExpired) {
               if (isCorrectAnswer) {
-                // Always highlight the correct answer in green when question is answered
                 buttonStyle +=
                   "bg-green-100 border-green-300 dark:bg-green-900/30 dark:border-green-700";
               } else if (isSelectedAnswer) {
-                // Highlight the selected wrong answer in red
                 buttonStyle +=
                   "bg-red-100 border-red-300 dark:bg-red-900/30 dark:border-red-700";
               } else {
                 buttonStyle += "hover:bg-muted/50";
               }
             } else {
-              // Default style before answer is revealed
               buttonStyle += "hover:bg-muted/50";
             }
 

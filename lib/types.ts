@@ -25,3 +25,9 @@ export interface Question {
   userAnswer?: string | null;
   categoryId?: string;
 }
+
+export interface AnswerWithTime {
+  questionId: string;
+  userAnswer: string | null;
+  timeSpent: number; // Time in seconds
+}

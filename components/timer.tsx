@@ -7,21 +7,33 @@ import { Clock } from "lucide-react";
 interface TimerProps {
   duration: number; // in seconds
   onExpire: () => void;
-  stopped?: boolean; // New prop to stop the timer when an answer is selected
+  onTimeUpdate?: (timeSpent: number) => void;
+  stopped?: boolean;
 }
 
-export function Timer({ duration, onExpire, stopped = false }: TimerProps) {
+export function Timer({ duration, onExpire, onTimeUpdate, stopped = false }: TimerProps) {
   const [timeLeft, setTimeLeft] = useState(duration);
   const [isRunning, setIsRunning] = useState(true);
   const hasExpired = useRef(false);
-
-  // Effect to handle the stopped prop
+  const startTimeRef = useRef(Date.now());
+  
+  // Handle stopping the timer and reporting time
   useEffect(() => {
-    if (stopped) {
+    if (stopped && isRunning) {
       setIsRunning(false);
+      
+      // Calculate time spent accurately based on actual elapsed time
+      const elapsedMs = Date.now() - startTimeRef.current;
+      const timeSpentSeconds = Math.min(Math.round(elapsedMs / 1000), duration);
+      
+      // Report time spent to parent component
+      if (onTimeUpdate) {
+        onTimeUpdate(timeSpentSeconds);
+      }
     }
-  }, [stopped]);
+  }, [stopped, duration, onTimeUpdate, isRunning]);
 
+  // Timer countdown effect
   useEffect(() => {
     if (!isRunning) return;
 
@@ -30,6 +42,11 @@ export function Timer({ duration, onExpire, stopped = false }: TimerProps) {
         if (prevTime <= 1) {
           clearInterval(timer);
           setIsRunning(false);
+          
+          // When expired, report the full duration
+          if (onTimeUpdate) {
+            onTimeUpdate(duration);
+          }
           return 0;
         }
         return prevTime - 1;
@@ -37,9 +54,9 @@ export function Timer({ duration, onExpire, stopped = false }: TimerProps) {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [isRunning]);
+  }, [isRunning, duration, onTimeUpdate]);
 
-  // Separate effect to handle timer expiration
+  // Handle timer expiration
   useEffect(() => {
     if (timeLeft === 0 && !hasExpired.current && !stopped) {
       hasExpired.current = true;
@@ -47,13 +64,17 @@ export function Timer({ duration, onExpire, stopped = false }: TimerProps) {
     }
   }, [timeLeft, onExpire, stopped]);
 
-  // Reset ref when the component is reset
+  // Reset state on component mount/key change
   useEffect(() => {
     hasExpired.current = false;
+    startTimeRef.current = Date.now();
+    setTimeLeft(duration);
+    setIsRunning(true);
+    
     return () => {
       hasExpired.current = false;
     };
-  }, []);
+  }, [duration]);
 
   // Format time as MM:SS
   const minutes = Math.floor(timeLeft / 60);
