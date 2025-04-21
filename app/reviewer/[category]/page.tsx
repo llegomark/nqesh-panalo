@@ -5,6 +5,8 @@ import { ReviewerContent } from "@/components/reviewer-content";
 import { getCategory, getCategoryQuestions } from "@/lib/data"; // Use direct data access
 import { shuffleArray } from "@/lib/utils";
 import type { Question } from '@/lib/types'; // Ensure Question type is imported
+import { Toaster } from "sonner";
+import { CopyProtection } from "@/components/copy-protection";
 
 interface ReviewerPageProps {
   params: Promise<{ category: string }>; // Params are async in v15 Server Components
@@ -61,6 +63,12 @@ export default async function ReviewerPage({ params }: ReviewerPageProps) {
 
   return (
     <div className="container max-w-3xl mx-auto py-6 px-4">
+      {/* Add Toaster component for notifications */}
+      <Toaster position="bottom-right" />
+      
+      {/* Add Copy Protection component */}
+      <CopyProtection />
+      
       <div className="space-y-2">
         <h1 className="text-2xl font-bold">{category.title} Reviewer</h1>
         {/* Optional: Add description or other category info here */}

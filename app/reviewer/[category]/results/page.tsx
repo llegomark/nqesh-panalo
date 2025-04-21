@@ -14,6 +14,8 @@ import { Separator } from "@/components/ui/separator";
 import { Check, ExternalLink, X } from "lucide-react";
 import type { Question, Category } from "@/lib/types";
 import { getCategory, getCategoryQuestions } from "@/lib/data"; // Use direct data access
+import { CopyProtection } from "@/components/copy-protection";
+import { Toaster } from "sonner";
 
 // Define type for parsed user answers
 type UserAnswer = {
@@ -134,6 +136,12 @@ export default async function ResultsPage({ params, searchParams }: ResultsPageP
 
   return (
     <div className="container max-w-3xl mx-auto py-6 px-4 space-y-8">
+      {/* Add Toaster component for notifications */}
+      <Toaster position="bottom-right" />
+      
+      {/* Add Copy Protection component */}
+      <CopyProtection />
+      
       <div className="space-y-2">
         <h1 className="text-2xl font-bold">Your Results</h1>
         <p className="text-muted-foreground">{category?.title} Reviewer Summary</p>

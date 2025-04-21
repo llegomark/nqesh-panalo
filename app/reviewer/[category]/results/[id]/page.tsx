@@ -15,6 +15,8 @@ import { Check, ExternalLink, X } from "lucide-react";
 // Remove unused Question import
 import { getCategory, getCategoryQuestions } from "@/lib/data";
 import { get } from "@/lib/db";
+import { CopyProtection } from "@/components/copy-protection";
+import { Toaster } from "sonner";
 
 // Remove unused UserAnswer type
 
@@ -82,6 +84,12 @@ export default async function ResultsPage({ params }: ResultsPageProps) {
 
   return (
     <div className="container max-w-3xl mx-auto py-6 px-4 space-y-8">
+      {/* Add Toaster component for notifications */}
+      <Toaster position="bottom-right" />
+      
+      {/* Add Copy Protection component */}
+      <CopyProtection />
+      
       <div className="space-y-2">
         <h1 className="text-2xl font-bold">Your Results</h1>
         <p className="text-muted-foreground">{category?.title} Reviewer Summary</p>

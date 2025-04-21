@@ -1,7 +1,7 @@
 // components/reviewer-content.tsx
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -25,6 +25,21 @@ export function ReviewerContent({ categoryId, initialQuestions }: ReviewerConten
   const [timeExpired, setTimeExpired] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Add class to make content copy-protected
+  useEffect(() => {
+    // Find and add the protection class to all question cards and content
+    const questionCards = document.querySelectorAll(".card");
+    questionCards.forEach(card => {
+      card.classList.add("copy-protected");
+    });
+    
+    // Also add to question text and options
+    const questionContent = document.querySelectorAll(".card-content");
+    questionContent.forEach(content => {
+      content.classList.add("copy-protected");
+    });
+  }, [currentQuestionIndex]);
 
   const handleAnswerSelect = (answerId: string) => {
     if (isAnswered || timeExpired) return;
@@ -153,16 +168,16 @@ export function ReviewerContent({ categoryId, initialQuestions }: ReviewerConten
         <Progress value={progressValue} className="h-2" />
       </div>
 
-      <Card>
+      <Card className="copy-protected">
         <CardHeader>
-          <CardTitle className="text-xl">{currentQuestion.question}</CardTitle>
+          <CardTitle className="text-xl copy-protected">{currentQuestion.question}</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-4 card-content">
           {currentQuestion.options.map((option) => {
             const isCorrectAnswer = option.id === currentQuestion.correctAnswer;
             const isSelectedAnswer = selectedAnswer === option.id;
             // Determine the styling based on whether the question is answered and which option this is
-            let buttonStyle = "w-full text-left p-4 rounded-md border transition-colors ";
+            let buttonStyle = "w-full text-left p-4 rounded-md border transition-colors copy-protected ";
 
             if (isAnswered || timeExpired) {
               if (isCorrectAnswer) {
@@ -187,7 +202,7 @@ export function ReviewerContent({ categoryId, initialQuestions }: ReviewerConten
                 disabled={isAnswered || timeExpired || isPending || isSubmitting}
                 aria-pressed={selectedAnswer === option.id}
               >
-                <span className="text-wrap">{option.text}</span>
+                <span className="text-wrap copy-protected">{option.text}</span>
               </button>
             );
           })}
@@ -195,7 +210,7 @@ export function ReviewerContent({ categoryId, initialQuestions }: ReviewerConten
 
         {(isAnswered || timeExpired) && (
           <CardFooter className="flex flex-col items-start border-t pt-4">
-             <div className="py-4 w-full space-y-4">
+             <div className="py-4 w-full space-y-4 copy-protected">
               <div>
                 <h3 className="font-medium mb-2">Explanation:</h3>
                 <p>{currentQuestion.explanation}</p>
