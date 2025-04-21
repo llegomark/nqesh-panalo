@@ -1,6 +1,5 @@
-"use client"
-
-import Link from "next/link"
+// components/footer.tsx
+import Link from "next/link";
 
 export function Footer() {
   return (
@@ -13,6 +12,9 @@ export function Footer() {
           <div className="flex gap-6">
             <Link href="/" className="text-sm text-muted-foreground hover:text-foreground">
               Home
+            </Link>
+            <Link href="/copyright" className="text-sm text-muted-foreground hover:text-foreground">
+              Copyright
             </Link>
             <Link href="#" className="text-sm text-muted-foreground hover:text-foreground">
               About
@@ -27,5 +29,5 @@ export function Footer() {
         </div>
       </div>
     </footer>
-  )
+  );
 }
