@@ -1,4 +1,3 @@
-// app/reviewer/[category]/results/[id]/page.tsx
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -12,11 +11,24 @@ import {
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Check, ExternalLink, X } from "lucide-react";
-// Remove unused Question import
 import { getCategory, getCategoryQuestions } from "@/lib/data";
 import { get } from "@/lib/db";
+import type { Question } from "@/lib/types"; // Import necessary types
+import dynamic from "next/dynamic";
+import { Skeleton } from "@/components/ui/skeleton";
+import type { PerformanceInsightsProps } from "@/components/performance-insights";
 
-// Remove unused UserAnswer type
+// --- Use the props type as generic for dynamic import ---
+const PerformanceInsights = dynamic<PerformanceInsightsProps>(
+  () =>
+    import("@/components/performance-insights").then(
+      (mod) => mod.PerformanceInsights,
+    ),
+  {
+    loading: () => <InsightsSkeleton />,
+    // ssr: false // Keep SSR true unless needed
+  },
+);
 
 // Define props for the dynamic route
 interface ResultsPageProps {
@@ -25,6 +37,58 @@ interface ResultsPageProps {
     id: string;
   }>;
 }
+
+// Skeleton component specifically for the PerformanceInsights loading state
+// (This is necessary for the dynamic import's loading state)
+function InsightsSkeleton() {
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-pulse">
+      {/* Skeleton for Time Spent Chart Card */}
+      <Card>
+        <CardHeader>
+          <Skeleton className="h-6 w-1/2 mb-2" />
+        </CardHeader>
+        <CardContent className="p-4">
+          <Skeleton className="h-64 w-full" />
+        </CardContent>
+        <CardFooter>
+          <Skeleton className="h-10 w-full" />
+        </CardFooter>
+      </Card>
+      {/* Skeleton for Performance Breakdown Chart Card */}
+      <Card>
+        <CardHeader>
+          <Skeleton className="h-6 w-1/2 mb-2" />
+        </CardHeader>
+        <CardContent className="p-4">
+          <Skeleton className="h-64 w-full" />
+        </CardContent>
+        <CardFooter>
+          <Skeleton className="h-10 w-full" />
+        </CardFooter>
+      </Card>
+      {/* Skeleton for Time vs Question Performance Card */}
+      <Card className="md:col-span-2">
+        <CardHeader>
+          <Skeleton className="h-6 w-3/4 mb-2" />
+        </CardHeader>
+        <CardContent className="p-4">
+          <Skeleton className="h-72 w-full" />
+        </CardContent>
+        <CardFooter>
+          <Skeleton className="h-10 w-full" />
+        </CardFooter>
+      </Card>
+    </div>
+  );
+}
+
+// Define the type for the combined results explicitly
+// Include timeSpent here as it's needed for PerformanceInsights, even if not displayed in the question list
+type CombinedResult = Question & {
+  userAnswer: string | null;
+  timeSpent: number;
+};
 
 export default async function ResultsPage({ params }: ResultsPageProps) {
   // Await the params object before destructuring it
@@ -44,9 +108,10 @@ export default async function ResultsPage({ params }: ResultsPageProps) {
     // Check if resultData is already an object
     if (typeof resultData === "object" && resultData !== null) {
       resultsObject = resultData;
+    } else if (typeof resultData === "string") {
+      resultsObject = JSON.parse(resultData);
     } else {
-      // Otherwise, parse it as JSON after casting to string
-      resultsObject = JSON.parse(resultData as string);
+      throw new Error("Invalid result data type from Redis");
     }
   } catch (error) {
     console.error("Error parsing result data:", error);
@@ -54,7 +119,22 @@ export default async function ResultsPage({ params }: ResultsPageProps) {
     notFound(); // Return 404 if we can't parse the data
   }
 
+  if (!resultsObject) {
+    console.error("Failed to process results object after parsing.");
+    notFound();
+  }
+
   const { score, total, answers } = resultsObject;
+
+  if (
+    score === undefined ||
+    total === undefined ||
+    !answers ||
+    !Array.isArray(answers)
+  ) {
+    console.error("Invalid data structure in results object", resultsObject);
+    notFound();
+  }
 
   // Fetch category and questions directly
   const category = getCategory(categoryId);
@@ -64,15 +144,19 @@ export default async function ResultsPage({ params }: ResultsPageProps) {
     notFound(); // Category not found
   }
 
-  // Combine questions with user answers
-  const combinedResults = questions.map((q) => {
+  // Combine questions with user answers - Ensure the type matches PerformanceInsightsProps['results']
+  const combinedResults: CombinedResult[] = questions.map((q) => {
     const userAnswerData = answers.find(
-      (a: { questionId: string; userAnswer: string | null }) =>
-        a.questionId === q.id,
+      (a: {
+        questionId: string;
+        userAnswer?: string | null;
+        timeSpent?: number;
+      }) => a && a.questionId === q.id,
     );
     return {
       ...q,
-      userAnswer: userAnswerData ? userAnswerData.userAnswer : null,
+      userAnswer: userAnswerData?.userAnswer ?? null, // Ensure null if undefined
+      timeSpent: userAnswerData?.timeSpent ?? 0, // Ensure 0 if undefined
     };
   });
 
@@ -123,6 +207,17 @@ export default async function ResultsPage({ params }: ResultsPageProps) {
           </Link>
         </CardFooter>
       </Card>
+
+      {/* Performance Insights Section - NOW LAZY LOADED */}
+      <div className="space-y-2">
+        <h2 className="text-xl font-bold">Performance Insights</h2>
+        <p className="text-muted-foreground">
+          Visual analysis of your performance and time management
+        </p>
+      </div>
+
+      {/* Render the dynamically loaded component */}
+      <PerformanceInsights results={combinedResults} />
 
       {/* Question Review Section */}
       <div className="space-y-2">
@@ -192,6 +287,8 @@ export default async function ResultsPage({ params }: ResultsPageProps) {
                 <h3 className="font-semibold mb-2">Explanation:</h3>
                 <p className="text-foreground">{question.explanation}</p>
               </div>
+
+              {/* --- REVERTED --- Time spent info section REMOVED from here */}
 
               {/* Source section */}
               {question.source && (
