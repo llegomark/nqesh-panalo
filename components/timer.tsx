@@ -1,6 +1,7 @@
+// components/timer.tsx
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
 import { Clock } from "lucide-react"
 
 interface TimerProps {
@@ -12,6 +13,7 @@ interface TimerProps {
 export function Timer({ duration, onExpire, stopped = false }: TimerProps) {
   const [timeLeft, setTimeLeft] = useState(duration)
   const [isRunning, setIsRunning] = useState(true)
+  const hasExpired = useRef(false)
 
   // Effect to handle the stopped prop
   useEffect(() => {
@@ -28,7 +30,6 @@ export function Timer({ duration, onExpire, stopped = false }: TimerProps) {
         if (prevTime <= 1) {
           clearInterval(timer)
           setIsRunning(false)
-          onExpire()
           return 0
         }
         return prevTime - 1
@@ -36,7 +37,23 @@ export function Timer({ duration, onExpire, stopped = false }: TimerProps) {
     }, 1000)
 
     return () => clearInterval(timer)
-  }, [isRunning, onExpire])
+  }, [isRunning])
+
+  // Separate effect to handle timer expiration
+  useEffect(() => {
+    if (timeLeft === 0 && !hasExpired.current && !stopped) {
+      hasExpired.current = true
+      onExpire()
+    }
+  }, [timeLeft, onExpire, stopped])
+
+  // Reset ref when the component is reset
+  useEffect(() => {
+    hasExpired.current = false
+    return () => {
+      hasExpired.current = false
+    }
+  }, [])
 
   // Format time as MM:SS
   const minutes = Math.floor(timeLeft / 60)
