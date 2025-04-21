@@ -1,7 +1,7 @@
 // app/reviewer/[category]/results/[id]/loading.tsx
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+// Removed unused Button import
 import { Separator } from "@/components/ui/separator";
 
 export default function Loading() {

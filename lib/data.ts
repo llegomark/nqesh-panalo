@@ -2,7 +2,7 @@
 import 'server-only'; // Ensures this module only runs on the server
 import { categories, questions } from '@/data/reviewer-data';
 import type { Category, Question } from '@/lib/types';
-import { notFound } from 'next/navigation';
+// Removed unused notFound import
 
 /**
  * Fetches all categories.

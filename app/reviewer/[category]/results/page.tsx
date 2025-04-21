@@ -1,6 +1,6 @@
 // app/reviewer/[category]/results/page.tsx
 import Link from "next/link";
-import { notFound, redirect } from "next/navigation"; // Import redirect
+import { notFound } from "next/navigation"; // Removed 'redirect'
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -68,7 +68,7 @@ export default async function ResultsPage({ params, searchParams }: ResultsPageP
     let decodedAnswers: UserAnswer[];
     try {
         decodedAnswers = JSON.parse(atob(answersParam));
-    } catch (e) {
+    } catch { // Removed the unused '_' variable
         throw new Error("Invalid answers data format.")
     }
 
@@ -101,9 +101,9 @@ export default async function ResultsPage({ params, searchParams }: ResultsPageP
       };
     });
 
-  } catch (err: any) {
+  } catch (err: Error | unknown) { // Changed 'any' to 'Error | unknown'
     console.error("Error processing results page:", err);
-    error = err.message || "Failed to load results data.";
+    error = err instanceof Error ? err.message : "Failed to load results data.";
     // Render error state below
   }
   // --- End Data Fetching ---

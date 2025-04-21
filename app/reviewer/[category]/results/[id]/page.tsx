@@ -12,12 +12,11 @@ import {
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Check, ExternalLink, X } from "lucide-react";
-import type { Question, Category } from "@/lib/types";
+// Remove unused Question import
 import { getCategory, getCategoryQuestions } from "@/lib/data";
 import { get } from "@/lib/db";
 
-// Define type for the combined results data
-type CombinedResult = Question & { userAnswer: string | null };
+// Remove unused UserAnswer type
 
 // Define props for the dynamic route
 interface ResultsPageProps {
@@ -67,7 +66,7 @@ export default async function ResultsPage({ params }: ResultsPageProps) {
   
   // Combine questions with user answers
   const combinedResults = questions.map((q) => {
-    const userAnswerData = answers.find((a: any) => a.questionId === q.id);
+    const userAnswerData = answers.find((a: { questionId: string, userAnswer: string | null }) => a.questionId === q.id);
     return {
       ...q,
       userAnswer: userAnswerData ? userAnswerData.userAnswer : null,
