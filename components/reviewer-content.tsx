@@ -53,7 +53,14 @@ export function ReviewerContent({
   // Time update handler - simpler and more direct
   const handleTimeUpdate = useCallback(() => {
     const currentQuestion = questions[currentQuestionIndex];
-    if (!currentQuestion || isAnswered || timeExpired) return; // Prevent updates after answering/time expiry
+    if (
+      !currentQuestion ||
+      currentQuestionIndex < 0 ||
+      currentQuestionIndex >= questions.length ||
+      isAnswered ||
+      timeExpired
+    )
+      return; // Prevent updates after answering/time expiry
 
     // Calculate elapsed time *more accurately*
     const elapsedSeconds = Math.round((Date.now() - startTime) / 1000);

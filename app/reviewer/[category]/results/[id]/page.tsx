@@ -108,7 +108,7 @@ export default async function ResultsPage({ params }: ResultsPageProps) {
     // Check if resultData is already an object
     if (typeof resultData === "object" && resultData !== null) {
       resultsObject = resultData;
-    } else if (typeof resultData === "string") {
+    } else if (resultData != null && typeof resultData === "string") {
       resultsObject = JSON.parse(resultData);
     } else {
       throw new Error("Invalid result data type from Redis");
@@ -127,10 +127,9 @@ export default async function ResultsPage({ params }: ResultsPageProps) {
   const { score, total, answers } = resultsObject;
 
   if (
-    score === undefined ||
-    total === undefined ||
-    !answers ||
-    !Array.isArray(answers)
+    !Array.isArray(answers) ||
+    typeof score !== "number" ||
+    typeof total !== "number"
   ) {
     console.error("Invalid data structure in results object", resultsObject);
     notFound();
