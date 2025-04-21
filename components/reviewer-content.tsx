@@ -3,7 +3,13 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import type { Question } from "@/lib/types";
 import { Timer } from "@/components/timer";
@@ -15,7 +21,10 @@ interface ReviewerContentProps {
   initialQuestions: Question[];
 }
 
-export function ReviewerContent({ categoryId, initialQuestions }: ReviewerContentProps) {
+export function ReviewerContent({
+  categoryId,
+  initialQuestions,
+}: ReviewerContentProps) {
   const router = useRouter();
   const [questions, setQuestions] = useState<Question[]>(initialQuestions);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -33,7 +42,7 @@ export function ReviewerContent({ categoryId, initialQuestions }: ReviewerConten
     const isCorrect = answerId === currentQuestion.correctAnswer;
 
     const updatedQuestions = questions.map((q, index) =>
-        index === currentQuestionIndex ? { ...q, userAnswer: answerId } : q
+      index === currentQuestionIndex ? { ...q, userAnswer: answerId } : q,
     );
     setQuestions(updatedQuestions);
 
@@ -62,48 +71,50 @@ export function ReviewerContent({ categoryId, initialQuestions }: ReviewerConten
   const submitResults = async () => {
     try {
       setIsSubmitting(true);
-      
-      const userAnswers = questions.map(q => ({ 
-        questionId: q.id, 
-        userAnswer: q.userAnswer 
+
+      const userAnswers = questions.map((q) => ({
+        questionId: q.id,
+        userAnswer: q.userAnswer,
       }));
-      
+
       const payload = {
         categoryId,
         score,
         total: questions.length,
-        answers: userAnswers
+        answers: userAnswers,
       };
-      
-      const response = await fetch('/api/results', {
-        method: 'POST',
+
+      const response = await fetch("/api/results", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json'
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(payload),
       });
-      
+
       if (!response.ok) {
-        throw new Error('Failed to save results');
+        throw new Error("Failed to save results");
       }
-      
+
       const { id } = await response.json();
       router.push(`/reviewer/${categoryId}/results/${id}`);
     } catch (error) {
-      console.error('Error submitting results:', error);
+      console.error("Error submitting results:", error);
       // Fallback to the old method if the API fails
-      const userAnswers = questions.map(q => ({ 
-        questionId: q.id, 
-        userAnswer: q.userAnswer 
+      const userAnswers = questions.map((q) => ({
+        questionId: q.id,
+        userAnswer: q.userAnswer,
       }));
-      
+
       const resultsParams = new URLSearchParams({
         score: score.toString(),
         total: questions.length.toString(),
         answers: btoa(JSON.stringify(userAnswers)),
       });
-      
-      router.push(`/reviewer/${categoryId}/results?${resultsParams.toString()}`);
+
+      router.push(
+        `/reviewer/${categoryId}/results?${resultsParams.toString()}`,
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -112,7 +123,7 @@ export function ReviewerContent({ categoryId, initialQuestions }: ReviewerConten
   const handleTimeExpired = () => {
     if (!isAnswered) {
       const updatedQuestions = questions.map((q, index) =>
-        index === currentQuestionIndex ? { ...q, userAnswer: null } : q
+        index === currentQuestionIndex ? { ...q, userAnswer: null } : q,
       );
       setQuestions(updatedQuestions);
     }
@@ -162,15 +173,18 @@ export function ReviewerContent({ categoryId, initialQuestions }: ReviewerConten
             const isCorrectAnswer = option.id === currentQuestion.correctAnswer;
             const isSelectedAnswer = selectedAnswer === option.id;
             // Determine the styling based on whether the question is answered and which option this is
-            let buttonStyle = "w-full text-left p-4 rounded-md border transition-colors ";
+            let buttonStyle =
+              "w-full text-left p-4 rounded-md border transition-colors ";
 
             if (isAnswered || timeExpired) {
               if (isCorrectAnswer) {
                 // Always highlight the correct answer in green when question is answered
-                buttonStyle += "bg-green-100 border-green-300 dark:bg-green-900/30 dark:border-green-700";
+                buttonStyle +=
+                  "bg-green-100 border-green-300 dark:bg-green-900/30 dark:border-green-700";
               } else if (isSelectedAnswer) {
                 // Highlight the selected wrong answer in red
-                buttonStyle += "bg-red-100 border-red-300 dark:bg-red-900/30 dark:border-red-700";
+                buttonStyle +=
+                  "bg-red-100 border-red-300 dark:bg-red-900/30 dark:border-red-700";
               } else {
                 buttonStyle += "hover:bg-muted/50";
               }
@@ -184,7 +198,9 @@ export function ReviewerContent({ categoryId, initialQuestions }: ReviewerConten
                 key={option.id}
                 className={buttonStyle}
                 onClick={() => handleAnswerSelect(option.id)}
-                disabled={isAnswered || timeExpired || isPending || isSubmitting}
+                disabled={
+                  isAnswered || timeExpired || isPending || isSubmitting
+                }
                 aria-pressed={selectedAnswer === option.id}
               >
                 <span className="text-wrap">{option.text}</span>
@@ -195,7 +211,7 @@ export function ReviewerContent({ categoryId, initialQuestions }: ReviewerConten
 
         {(isAnswered || timeExpired) && (
           <CardFooter className="flex flex-col items-start border-t pt-4">
-             <div className="py-4 w-full space-y-4">
+            <div className="py-4 w-full space-y-4">
               <div>
                 <h3 className="font-medium mb-2">Explanation:</h3>
                 <p>{currentQuestion.explanation}</p>
@@ -227,8 +243,11 @@ export function ReviewerContent({ categoryId, initialQuestions }: ReviewerConten
               className="ml-auto w-full sm:w-auto"
               disabled={isPending || isSubmitting}
             >
-              {(isPending || isSubmitting) ? (
-                <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Processing...</>
+              {isPending || isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />{" "}
+                  Processing...
+                </>
               ) : currentQuestionIndex < questions.length - 1 ? (
                 "Next Question"
               ) : (

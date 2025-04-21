@@ -25,15 +25,16 @@ type UserAnswer = {
 type CombinedResult = Question & { userAnswer: string | null };
 
 interface ResultsPageProps {
-    // Correctly define props as Promises for async Server Components
-    params: Promise<{ category: string }>;
-    searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+  // Correctly define props as Promises for async Server Components
+  params: Promise<{ category: string }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
-
 // --- Main Page Component (Server Component) ---
-export default async function ResultsPage({ params, searchParams }: ResultsPageProps) {
-
+export default async function ResultsPage({
+  params,
+  searchParams,
+}: ResultsPageProps) {
   // --- Await props immediately ---
   const resolvedParams = await params;
   const resolvedSearchParams = await searchParams;
@@ -53,55 +54,62 @@ export default async function ResultsPage({ params, searchParams }: ResultsPageP
     const totalParam = resolvedSearchParams?.total;
     const answersParam = resolvedSearchParams?.answers;
 
-    if (typeof scoreParam !== 'string' || typeof totalParam !== 'string' || typeof answersParam !== 'string' || !categoryId) {
-        throw new Error("Missing required results data in URL.");
+    if (
+      typeof scoreParam !== "string" ||
+      typeof totalParam !== "string" ||
+      typeof answersParam !== "string" ||
+      !categoryId
+    ) {
+      throw new Error("Missing required results data in URL.");
     }
 
     score = parseInt(scoreParam, 10);
     total = parseInt(totalParam, 10);
 
-     if (isNaN(score) || isNaN(total)) {
-       throw new Error("Invalid score or total value.");
-     }
+    if (isNaN(score) || isNaN(total)) {
+      throw new Error("Invalid score or total value.");
+    }
 
     // Ensure answersParam is valid base64 before decoding
     let decodedAnswers: UserAnswer[];
     try {
-        decodedAnswers = JSON.parse(atob(answersParam));
-    } catch { // Removed the unused '_' variable
-        throw new Error("Invalid answers data format.")
+      decodedAnswers = JSON.parse(atob(answersParam));
+    } catch {
+      // Removed the unused '_' variable
+      throw new Error("Invalid answers data format.");
     }
-
 
     // Fetch category and questions directly
     category = getCategory(categoryId);
     const questions = getCategoryQuestions(categoryId);
 
     if (!category) {
-        notFound(); // Use notFound for missing category
+      notFound(); // Use notFound for missing category
     }
 
     if (questions.length === 0 || questions.length !== total) {
-       console.warn(`Question count mismatch or no questions found for category ${categoryId}. URL total: ${total}, Fetched: ${questions.length}`);
-       // Adjust total based on fetched questions if mismatch, handle zero case
-       total = questions.length;
-       if (total === 0) {
-          // Redirect if no questions found, or show specific message
-          // redirect(`/reviewer/${categoryId}?error=no_questions`);
-          throw new Error("No questions found for this category review.");
-       }
+      console.warn(
+        `Question count mismatch or no questions found for category ${categoryId}. URL total: ${total}, Fetched: ${questions.length}`,
+      );
+      // Adjust total based on fetched questions if mismatch, handle zero case
+      total = questions.length;
+      if (total === 0) {
+        // Redirect if no questions found, or show specific message
+        // redirect(`/reviewer/${categoryId}?error=no_questions`);
+        throw new Error("No questions found for this category review.");
+      }
     }
 
     // Combine fetched questions with user answers
     combinedResults = questions.map((q) => {
-      const userAnswerData = decodedAnswers.find(a => a.questionId === q.id);
+      const userAnswerData = decodedAnswers.find((a) => a.questionId === q.id);
       return {
         ...q,
         userAnswer: userAnswerData ? userAnswerData.userAnswer : null,
       };
     });
-
-  } catch (err: Error | unknown) { // Changed 'any' to 'Error | unknown'
+  } catch (err: Error | unknown) {
+    // Changed 'any' to 'Error | unknown'
     console.error("Error processing results page:", err);
     error = err instanceof Error ? err.message : "Failed to load results data.";
     // Render error state below
@@ -115,9 +123,12 @@ export default async function ResultsPage({ params, searchParams }: ResultsPageP
         <p className="text-red-600">{error}</p>
         {/* Provide relevant actions based on error context */}
         {categoryId ? (
-             <Link href={`/reviewer/${categoryId}`} className="mt-4 inline-block mr-2">
-                <Button variant="outline">Try Review Again</Button>
-            </Link>
+          <Link
+            href={`/reviewer/${categoryId}`}
+            className="mt-4 inline-block mr-2"
+          >
+            <Button variant="outline">Try Review Again</Button>
+          </Link>
         ) : null}
         <Link href="/" className="mt-4 inline-block">
           <Button>Return to Home</Button>
@@ -128,7 +139,8 @@ export default async function ResultsPage({ params, searchParams }: ResultsPageP
 
   // --- Render Success State ---
   // Handle singular/plural forms
-  const correctAnswerText = score === 1 ? "1 correct answer" : `${score} correct answers`;
+  const correctAnswerText =
+    score === 1 ? "1 correct answer" : `${score} correct answers`;
   const questionText = total === 1 ? "1 question" : `${total} questions`;
   const percentageScore = total > 0 ? Math.round((score / total) * 100) : 0;
 
@@ -136,7 +148,9 @@ export default async function ResultsPage({ params, searchParams }: ResultsPageP
     <div className="container max-w-3xl mx-auto py-6 px-4 space-y-8">
       <div className="space-y-2">
         <h1 className="text-2xl font-bold">Your Results</h1>
-        <p className="text-muted-foreground">{category?.title} Reviewer Summary</p>
+        <p className="text-muted-foreground">
+          {category?.title} Reviewer Summary
+        </p>
       </div>
 
       {/* Performance Summary Card */}
@@ -144,7 +158,8 @@ export default async function ResultsPage({ params, searchParams }: ResultsPageP
         <CardHeader>
           <CardTitle>Performance Summary</CardTitle>
           <CardDescription>
-            You scored {score} out of {total} {total === 1 ? "question" : "questions"}
+            You scored {score} out of {total}{" "}
+            {total === 1 ? "question" : "questions"}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -159,7 +174,9 @@ export default async function ResultsPage({ params, searchParams }: ResultsPageP
         </CardContent>
         <CardFooter className="flex flex-col sm:flex-row justify-between gap-2">
           <Link href={`/reviewer/${categoryId}`} className="w-full sm:w-auto">
-            <Button variant="outline" className="w-full">Try Again</Button>
+            <Button variant="outline" className="w-full">
+              Try Again
+            </Button>
           </Link>
           <Link href="/" className="w-full sm:w-auto">
             <Button className="w-full">Back to Categories</Button>
@@ -167,7 +184,7 @@ export default async function ResultsPage({ params, searchParams }: ResultsPageP
         </CardFooter>
       </Card>
 
-       {/* Question Review Section */}
+      {/* Question Review Section */}
       <div className="space-y-2">
         <h2 className="text-xl font-bold">Question Review</h2>
         <p className="text-muted-foreground">
@@ -190,12 +207,15 @@ export default async function ResultsPage({ params, searchParams }: ResultsPageP
                   const isCorrect = opt.id === question.correctAnswer;
                   const isChosen = opt.id === question.userAnswer;
 
-                  let optionStyle = "w-full text-left p-4 rounded-md border transition-colors mb-3 flex items-center ";
+                  let optionStyle =
+                    "w-full text-left p-4 rounded-md border transition-colors mb-3 flex items-center ";
 
                   if (isCorrect) {
-                    optionStyle += "bg-green-100 border-green-300 dark:bg-green-900/30 dark:border-green-700";
+                    optionStyle +=
+                      "bg-green-100 border-green-300 dark:bg-green-900/30 dark:border-green-700";
                   } else if (isChosen) {
-                    optionStyle += "bg-red-100 border-red-300 dark:bg-red-900/30 dark:border-red-700";
+                    optionStyle +=
+                      "bg-red-100 border-red-300 dark:bg-red-900/30 dark:border-red-700";
                   } else {
                     optionStyle += "bg-background border-input";
                   }
@@ -216,11 +236,11 @@ export default async function ResultsPage({ params, searchParams }: ResultsPageP
                           isCorrect
                             ? "font-medium text-green-600 dark:text-green-400"
                             : isChosen
-                            ? "font-medium text-red-600 dark:text-red-400"
-                            : ""
+                              ? "font-medium text-red-600 dark:text-red-400"
+                              : ""
                         }
                       >
-                         <span className="text-wrap">{opt.text}</span>
+                        <span className="text-wrap">{opt.text}</span>
                       </span>
                     </div>
                   );
@@ -240,7 +260,9 @@ export default async function ResultsPage({ params, searchParams }: ResultsPageP
                   <Separator className="my-4" />
                   <div className="flex items-center justify-between">
                     <div>
-                      <h3 className="font-medium text-sm text-muted-foreground">Source:</h3>
+                      <h3 className="font-medium text-sm text-muted-foreground">
+                        Source:
+                      </h3>
                       <div className="flex items-center gap-2 mt-1">
                         <span>{question.source.name}</span>
                       </div>

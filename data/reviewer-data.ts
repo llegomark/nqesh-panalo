@@ -1,38 +1,43 @@
-import type { Category, Question } from "@/lib/types"
+import type { Category, Question } from "@/lib/types";
 
 export const categories: Category[] = [
   {
     id: "school-leadership",
     title: "School Leadership",
-    description: "Review questions about leadership styles, management, and school governance",
+    description:
+      "Review questions about leadership styles, management, and school governance",
     questionCount: 25,
   },
   {
     id: "instructional-leadership",
     title: "Instructional Leadership",
-    description: "Questions on curriculum implementation, teaching methodologies, and assessment",
+    description:
+      "Questions on curriculum implementation, teaching methodologies, and assessment",
     questionCount: 30,
   },
   {
     id: "personal-and-professional-development",
     title: "Personal & Professional Development",
-    description: "Topics on continuous improvement, ethics, and professional growth",
+    description:
+      "Topics on continuous improvement, ethics, and professional growth",
     questionCount: 20,
   },
   {
     id: "human-resource-management",
     title: "Human Resource Management",
-    description: "Questions about staff development, conflict resolution, and team building",
+    description:
+      "Questions about staff development, conflict resolution, and team building",
     questionCount: 15,
   },
-]
+];
 
 export const questions: Question[] = [
   // School Leadership Questions
   {
     id: "sl-1",
     categoryId: "school-leadership",
-    question: "Which leadership style is characterized by involving team members in the decision-making process?",
+    question:
+      "Which leadership style is characterized by involving team members in the decision-making process?",
     options: [
       { id: "a", text: "Autocratic leadership" },
       { id: "b", text: "Democratic leadership" },
@@ -54,7 +59,10 @@ export const questions: Question[] = [
     options: [
       { id: "a", text: "To satisfy regulatory requirements" },
       { id: "b", text: "To document teacher performance" },
-      { id: "c", text: "To guide strategic actions for enhancing student outcomes" },
+      {
+        id: "c",
+        text: "To guide strategic actions for enhancing student outcomes",
+      },
       { id: "d", text: "To allocate budget resources" },
     ],
     correctAnswer: "c",
@@ -68,11 +76,18 @@ export const questions: Question[] = [
   {
     id: "sl-3",
     categoryId: "school-leadership",
-    question: "Which of the following best describes distributed leadership in a school context?",
+    question:
+      "Which of the following best describes distributed leadership in a school context?",
     options: [
       { id: "a", text: "The principal makes all decisions independently" },
-      { id: "b", text: "Leadership responsibilities are shared among various stakeholders" },
-      { id: "c", text: "Teachers are solely responsible for classroom management" },
+      {
+        id: "b",
+        text: "Leadership responsibilities are shared among various stakeholders",
+      },
+      {
+        id: "c",
+        text: "Teachers are solely responsible for classroom management",
+      },
       { id: "d", text: "External consultants manage school operations" },
     ],
     correctAnswer: "b",
@@ -86,12 +101,25 @@ export const questions: Question[] = [
   {
     id: "sl-4",
     categoryId: "school-leadership",
-    question: "What is a key characteristic of transformational leadership in education?",
+    question:
+      "What is a key characteristic of transformational leadership in education?",
     options: [
-      { id: "a", text: "Focusing primarily on maintaining existing procedures" },
-      { id: "b", text: "Emphasizing rewards and punishments to motivate staff" },
-      { id: "c", text: "Inspiring and motivating staff to achieve a shared vision" },
-      { id: "d", text: "Avoiding direct involvement in teaching and learning processes" },
+      {
+        id: "a",
+        text: "Focusing primarily on maintaining existing procedures",
+      },
+      {
+        id: "b",
+        text: "Emphasizing rewards and punishments to motivate staff",
+      },
+      {
+        id: "c",
+        text: "Inspiring and motivating staff to achieve a shared vision",
+      },
+      {
+        id: "d",
+        text: "Avoiding direct involvement in teaching and learning processes",
+      },
     ],
     correctAnswer: "c",
     explanation:
@@ -125,12 +153,22 @@ export const questions: Question[] = [
   {
     id: "il-1",
     categoryId: "instructional-leadership",
-    question: "Which of the following best describes the purpose of formative assessment?",
+    question:
+      "Which of the following best describes the purpose of formative assessment?",
     options: [
       { id: "a", text: "To assign final grades at the end of a term" },
-      { id: "b", text: "To monitor student learning and provide ongoing feedback" },
-      { id: "c", text: "To compare student performance across different schools" },
-      { id: "d", text: "To determine student placement in specialized programs" },
+      {
+        id: "b",
+        text: "To monitor student learning and provide ongoing feedback",
+      },
+      {
+        id: "c",
+        text: "To compare student performance across different schools",
+      },
+      {
+        id: "d",
+        text: "To determine student placement in specialized programs",
+      },
     ],
     correctAnswer: "b",
     explanation:
@@ -145,10 +183,16 @@ export const questions: Question[] = [
     categoryId: "instructional-leadership",
     question: "What is the primary goal of differentiated instruction?",
     options: [
-      { id: "a", text: "To standardize teaching methods across all classrooms" },
+      {
+        id: "a",
+        text: "To standardize teaching methods across all classrooms",
+      },
       { id: "b", text: "To reduce the workload for teachers" },
       { id: "c", text: "To address the diverse learning needs of students" },
-      { id: "d", text: "To prepare students exclusively for standardized tests" },
+      {
+        id: "d",
+        text: "To prepare students exclusively for standardized tests",
+      },
     ],
     correctAnswer: "c",
     explanation:
@@ -161,7 +205,8 @@ export const questions: Question[] = [
   {
     id: "il-3",
     categoryId: "instructional-leadership",
-    question: "Which instructional strategy involves students working together to solve problems or complete tasks?",
+    question:
+      "Which instructional strategy involves students working together to solve problems or complete tasks?",
     options: [
       { id: "a", text: "Direct instruction" },
       { id: "b", text: "Independent study" },
@@ -179,10 +224,17 @@ export const questions: Question[] = [
   {
     id: "il-4",
     categoryId: "instructional-leadership",
-    question: "What is the main purpose of a professional learning community (PLC) in a school?",
+    question:
+      "What is the main purpose of a professional learning community (PLC) in a school?",
     options: [
-      { id: "a", text: "To evaluate teacher performance for administrative purposes" },
-      { id: "b", text: "To collaborate on improving teaching practices and student learning" },
+      {
+        id: "a",
+        text: "To evaluate teacher performance for administrative purposes",
+      },
+      {
+        id: "b",
+        text: "To collaborate on improving teaching practices and student learning",
+      },
       { id: "c", text: "To organize social events for school staff" },
       { id: "d", text: "To manage school budgets and resources" },
     ],
@@ -197,10 +249,14 @@ export const questions: Question[] = [
   {
     id: "il-5",
     categoryId: "instructional-leadership",
-    question: "Which of the following best describes the concept of 'scaffolding' in education?",
+    question:
+      "Which of the following best describes the concept of 'scaffolding' in education?",
     options: [
       { id: "a", text: "Grouping students by ability level" },
-      { id: "b", text: "Providing temporary support that is gradually removed as students develop skills" },
+      {
+        id: "b",
+        text: "Providing temporary support that is gradually removed as students develop skills",
+      },
       { id: "c", text: "Using technology as the primary teaching tool" },
       { id: "d", text: "Assigning homework to reinforce classroom learning" },
     ],
@@ -217,10 +273,17 @@ export const questions: Question[] = [
   {
     id: "ppd-1",
     categoryId: "personal-and-professional-development",
-    question: "Which of the following best describes reflective practice for educators?",
+    question:
+      "Which of the following best describes reflective practice for educators?",
     options: [
-      { id: "a", text: "Following prescribed teaching methods without deviation" },
-      { id: "b", text: "Critically examining one's teaching experiences to improve practice" },
+      {
+        id: "a",
+        text: "Following prescribed teaching methods without deviation",
+      },
+      {
+        id: "b",
+        text: "Critically examining one's teaching experiences to improve practice",
+      },
       { id: "c", text: "Implementing only research-based strategies" },
       { id: "d", text: "Focusing solely on student test scores" },
     ],
@@ -235,12 +298,22 @@ export const questions: Question[] = [
   {
     id: "ppd-2",
     categoryId: "personal-and-professional-development",
-    question: "What is a key characteristic of a growth mindset in educational leadership?",
+    question:
+      "What is a key characteristic of a growth mindset in educational leadership?",
     options: [
       { id: "a", text: "Believing that leadership abilities are fixed traits" },
-      { id: "b", text: "Avoiding challenges to maintain a positive reputation" },
-      { id: "c", text: "Viewing challenges as opportunities for growth and learning" },
-      { id: "d", text: "Focusing exclusively on innate talents rather than developed skills" },
+      {
+        id: "b",
+        text: "Avoiding challenges to maintain a positive reputation",
+      },
+      {
+        id: "c",
+        text: "Viewing challenges as opportunities for growth and learning",
+      },
+      {
+        id: "d",
+        text: "Focusing exclusively on innate talents rather than developed skills",
+      },
     ],
     correctAnswer: "c",
     explanation:
@@ -253,7 +326,8 @@ export const questions: Question[] = [
   {
     id: "ppd-3",
     categoryId: "personal-and-professional-development",
-    question: "Which ethical principle emphasizes treating all students fairly and equitably?",
+    question:
+      "Which ethical principle emphasizes treating all students fairly and equitably?",
     options: [
       { id: "a", text: "Confidentiality" },
       { id: "b", text: "Justice" },
@@ -271,11 +345,15 @@ export const questions: Question[] = [
   {
     id: "ppd-4",
     categoryId: "personal-and-professional-development",
-    question: "What is the primary purpose of a professional development plan for school leaders?",
+    question:
+      "What is the primary purpose of a professional development plan for school leaders?",
     options: [
       { id: "a", text: "To fulfill certification requirements" },
       { id: "b", text: "To document past achievements" },
-      { id: "c", text: "To guide intentional growth in leadership competencies" },
+      {
+        id: "c",
+        text: "To guide intentional growth in leadership competencies",
+      },
       { id: "d", text: "To compare performance with other school leaders" },
     ],
     correctAnswer: "c",
@@ -289,7 +367,8 @@ export const questions: Question[] = [
   {
     id: "ppd-5",
     categoryId: "personal-and-professional-development",
-    question: "Which approach to professional learning emphasizes job-embedded, collaborative learning?",
+    question:
+      "Which approach to professional learning emphasizes job-embedded, collaborative learning?",
     options: [
       { id: "a", text: "One-time workshops" },
       { id: "b", text: "Individual online courses" },
@@ -309,12 +388,16 @@ export const questions: Question[] = [
   {
     id: "hrm-1",
     categoryId: "human-resource-management",
-    question: "Which of the following is a key component of effective teacher induction programs?",
+    question:
+      "Which of the following is a key component of effective teacher induction programs?",
     options: [
       { id: "a", text: "Minimal supervision to encourage independence" },
       { id: "b", text: "Mentoring from experienced teachers" },
       { id: "c", text: "Immediate full teaching responsibilities" },
-      { id: "d", text: "Isolation from other staff to focus on classroom management" },
+      {
+        id: "d",
+        text: "Isolation from other staff to focus on classroom management",
+      },
     ],
     correctAnswer: "b",
     explanation:
@@ -331,7 +414,10 @@ export const questions: Question[] = [
     options: [
       { id: "a", text: "To identify teachers for dismissal" },
       { id: "b", text: "To fulfill administrative requirements" },
-      { id: "c", text: "To promote professional growth and improve instruction" },
+      {
+        id: "c",
+        text: "To promote professional growth and improve instruction",
+      },
       { id: "d", text: "To determine salary increases" },
     ],
     correctAnswer: "c",
@@ -364,11 +450,21 @@ export const questions: Question[] = [
   {
     id: "hrm-4",
     categoryId: "human-resource-management",
-    question: "What is a key characteristic of effective delegation by school leaders?",
+    question:
+      "What is a key characteristic of effective delegation by school leaders?",
     options: [
-      { id: "a", text: "Assigning tasks without providing necessary resources" },
-      { id: "b", text: "Maintaining tight control over all aspects of delegated tasks" },
-      { id: "c", text: "Matching tasks to individuals' skills and development needs" },
+      {
+        id: "a",
+        text: "Assigning tasks without providing necessary resources",
+      },
+      {
+        id: "b",
+        text: "Maintaining tight control over all aspects of delegated tasks",
+      },
+      {
+        id: "c",
+        text: "Matching tasks to individuals' skills and development needs",
+      },
       { id: "d", text: "Delegating only routine, administrative tasks" },
     ],
     correctAnswer: "c",
@@ -382,12 +478,22 @@ export const questions: Question[] = [
   {
     id: "hrm-5",
     categoryId: "human-resource-management",
-    question: "Which of the following best describes distributed leadership in a school setting?",
+    question:
+      "Which of the following best describes distributed leadership in a school setting?",
     options: [
       { id: "a", text: "The principal makes all decisions independently" },
-      { id: "b", text: "Leadership responsibilities are shared among various stakeholders" },
-      { id: "c", text: "Department heads have complete autonomy over their areas" },
-      { id: "d", text: "External consultants direct school improvement efforts" },
+      {
+        id: "b",
+        text: "Leadership responsibilities are shared among various stakeholders",
+      },
+      {
+        id: "c",
+        text: "Department heads have complete autonomy over their areas",
+      },
+      {
+        id: "d",
+        text: "External consultants direct school improvement efforts",
+      },
     ],
     correctAnswer: "b",
     explanation:
@@ -397,4 +503,4 @@ export const questions: Question[] = [
       url: "https://www.educationleadership-digital.com/distributed-leadership",
     },
   },
-]
+];

@@ -1,6 +1,6 @@
-import Link from "next/link"
-import { BookOpen } from "lucide-react"
-import { ModeToggle } from "@/components/mode-toggle"
+import Link from "next/link";
+import { BookOpen } from "lucide-react";
+import { ModeToggle } from "@/components/mode-toggle";
 
 export function Header() {
   return (
@@ -13,5 +13,5 @@ export function Header() {
         <ModeToggle />
       </div>
     </header>
-  )
+  );
 }

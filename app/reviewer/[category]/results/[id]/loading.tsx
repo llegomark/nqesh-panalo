@@ -1,6 +1,13 @@
 // app/reviewer/[category]/results/[id]/loading.tsx
 import { Skeleton } from "@/components/ui/skeleton";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 // Removed unused Button import
 import { Separator } from "@/components/ui/separator";
 
@@ -60,7 +67,10 @@ export default function Loading() {
           <CardContent className="pt-6 space-y-5">
             {/* Options */}
             {[1, 2, 3, 4].map((j) => (
-              <div key={j} className="w-full p-4 rounded-md border border-input bg-background flex items-start">
+              <div
+                key={j}
+                className="w-full p-4 rounded-md border border-input bg-background flex items-start"
+              >
                 <div className="mr-3 mt-0.5">
                   <Skeleton className="h-5 w-5 rounded-full" />
                 </div>
@@ -83,7 +93,9 @@ export default function Loading() {
               <Separator className="my-4" />
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="font-medium text-sm text-muted-foreground">Source:</div>
+                  <div className="font-medium text-sm text-muted-foreground">
+                    Source:
+                  </div>
                   <div className="mt-1">
                     <Skeleton className="h-5 w-40" />
                   </div>

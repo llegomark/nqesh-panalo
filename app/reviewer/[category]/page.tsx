@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { ReviewerContent } from "@/components/reviewer-content";
 import { getCategory, getCategoryQuestions } from "@/lib/data"; // Use direct data access
 import { shuffleArray } from "@/lib/utils";
-import type { Question } from '@/lib/types'; // Ensure Question type is imported
+import type { Question } from "@/lib/types"; // Ensure Question type is imported
 
 interface ReviewerPageProps {
   params: Promise<{ category: string }>; // Params are async in v15 Server Components
@@ -33,7 +33,7 @@ export async function generateMetadata({
 
 // The page component itself
 export default async function ReviewerPage({ params }: ReviewerPageProps) {
-   // Await params here
+  // Await params here
   const { category: categoryId } = await params;
 
   // Fetch category details directly
@@ -47,17 +47,17 @@ export default async function ReviewerPage({ params }: ReviewerPageProps) {
 
   // Handle case where category exists but has no questions
   if (allCategoryQuestions.length === 0) {
-     notFound(); // Or render a message component
+    notFound(); // Or render a message component
   }
 
   // Shuffle questions and their options here on the server
-  const shuffledQuestions: Question[] = shuffleArray([...allCategoryQuestions]).map(
-    (question) => ({
-      ...question,
-      options: shuffleArray([...question.options]),
-      userAnswer: null, // Initialize userAnswer
-    })
-  );
+  const shuffledQuestions: Question[] = shuffleArray([
+    ...allCategoryQuestions,
+  ]).map((question) => ({
+    ...question,
+    options: shuffleArray([...question.options]),
+    userAnswer: null, // Initialize userAnswer
+  }));
 
   return (
     <div className="container max-w-3xl mx-auto py-6 px-4">

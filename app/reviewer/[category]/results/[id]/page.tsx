@@ -30,19 +30,19 @@ export default async function ResultsPage({ params }: ResultsPageProps) {
   // Await the params object before destructuring it
   const resolvedParams = await params;
   const { category: categoryId, id } = resolvedParams;
-  
+
   // Try to fetch results from Redis
   const resultData = await get(`results:${id}`);
-  
+
   if (!resultData) {
     notFound(); // No results found for this ID
   }
-  
+
   // Parse the stored results data - if it's already an object, don't parse it
   let resultsObject;
   try {
     // Check if resultData is already an object
-    if (typeof resultData === 'object' && resultData !== null) {
+    if (typeof resultData === "object" && resultData !== null) {
       resultsObject = resultData;
     } else {
       // Otherwise, parse it as JSON after casting to string
@@ -53,38 +53,44 @@ export default async function ResultsPage({ params }: ResultsPageProps) {
     console.log("Original resultData:", resultData);
     notFound(); // Return 404 if we can't parse the data
   }
-  
+
   const { score, total, answers } = resultsObject;
-  
+
   // Fetch category and questions directly
   const category = getCategory(categoryId);
   const questions = getCategoryQuestions(categoryId);
-  
+
   if (!category) {
     notFound(); // Category not found
   }
-  
+
   // Combine questions with user answers
   const combinedResults = questions.map((q) => {
-    const userAnswerData = answers.find((a: { questionId: string, userAnswer: string | null }) => a.questionId === q.id);
+    const userAnswerData = answers.find(
+      (a: { questionId: string; userAnswer: string | null }) =>
+        a.questionId === q.id,
+    );
     return {
       ...q,
       userAnswer: userAnswerData ? userAnswerData.userAnswer : null,
     };
   });
-  
+
   // Calculate percentage score
   const percentageScore = total > 0 ? Math.round((score / total) * 100) : 0;
-  
+
   // Handle singular/plural forms
-  const correctAnswerText = score === 1 ? "1 correct answer" : `${score} correct answers`;
+  const correctAnswerText =
+    score === 1 ? "1 correct answer" : `${score} correct answers`;
   const questionText = total === 1 ? "1 question" : `${total} questions`;
 
   return (
     <div className="container max-w-3xl mx-auto py-6 px-4 space-y-8">
       <div className="space-y-2">
         <h1 className="text-2xl font-bold">Your Results</h1>
-        <p className="text-muted-foreground">{category?.title} Reviewer Summary</p>
+        <p className="text-muted-foreground">
+          {category?.title} Reviewer Summary
+        </p>
       </div>
 
       {/* Performance Summary Card */}
@@ -92,7 +98,8 @@ export default async function ResultsPage({ params }: ResultsPageProps) {
         <CardHeader>
           <CardTitle>Performance Summary</CardTitle>
           <CardDescription>
-            You scored {score} out of {total} {total === 1 ? "question" : "questions"}
+            You scored {score} out of {total}{" "}
+            {total === 1 ? "question" : "questions"}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -107,7 +114,9 @@ export default async function ResultsPage({ params }: ResultsPageProps) {
         </CardContent>
         <CardFooter className="flex flex-col sm:flex-row justify-between gap-2">
           <Link href={`/reviewer/${categoryId}`} className="w-full sm:w-auto">
-            <Button variant="outline" className="w-full">Try Again</Button>
+            <Button variant="outline" className="w-full">
+              Try Again
+            </Button>
           </Link>
           <Link href="/" className="w-full sm:w-auto">
             <Button className="w-full">Back to Categories</Button>
@@ -138,12 +147,15 @@ export default async function ResultsPage({ params }: ResultsPageProps) {
                   const isCorrect = opt.id === question.correctAnswer;
                   const isChosen = opt.id === question.userAnswer;
 
-                  let optionStyle = "w-full text-left p-4 rounded-md border transition-colors mb-3 flex items-center ";
+                  let optionStyle =
+                    "w-full text-left p-4 rounded-md border transition-colors mb-3 flex items-center ";
 
                   if (isCorrect) {
-                    optionStyle += "bg-green-100 border-green-300 dark:bg-green-900/30 dark:border-green-700";
+                    optionStyle +=
+                      "bg-green-100 border-green-300 dark:bg-green-900/30 dark:border-green-700";
                   } else if (isChosen) {
-                    optionStyle += "bg-red-100 border-red-300 dark:bg-red-900/30 dark:border-red-700";
+                    optionStyle +=
+                      "bg-red-100 border-red-300 dark:bg-red-900/30 dark:border-red-700";
                   } else {
                     optionStyle += "bg-background border-input";
                   }
@@ -164,8 +176,8 @@ export default async function ResultsPage({ params }: ResultsPageProps) {
                           isCorrect
                             ? "font-medium text-green-600 dark:text-green-400"
                             : isChosen
-                            ? "font-medium text-red-600 dark:text-red-400"
-                            : ""
+                              ? "font-medium text-red-600 dark:text-red-400"
+                              : ""
                         }
                       >
                         <span className="text-wrap">{opt.text}</span>
@@ -187,7 +199,9 @@ export default async function ResultsPage({ params }: ResultsPageProps) {
                   <Separator className="my-4" />
                   <div className="flex items-center justify-between">
                     <div>
-                      <h3 className="font-medium text-sm text-muted-foreground">Source:</h3>
+                      <h3 className="font-medium text-sm text-muted-foreground">
+                        Source:
+                      </h3>
                       <div className="flex items-center gap-2 mt-1">
                         <span>{question.source.name}</span>
                       </div>

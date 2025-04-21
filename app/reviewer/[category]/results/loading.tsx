@@ -1,6 +1,11 @@
 // app/reviewer/[category]/results/loading.tsx
 import { Skeleton } from "@/components/ui/skeleton";
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+} from "@/components/ui/card";
 
 export default function Loading() {
   // Skeleton structure remains unchanged
@@ -47,34 +52,34 @@ export default function Loading() {
               <Skeleton className="h-5 w-5 rounded-full" />
               <Skeleton className="h-5 flex-grow" />
             </div>
-             <div className="flex items-center space-x-3">
-               <Skeleton className="h-5 w-5 rounded-full" />
-               <Skeleton className="h-5 flex-grow" />
-             </div>
-             <div className="flex items-center space-x-3">
-               <Skeleton className="h-5 w-5 rounded-full" />
-               <Skeleton className="h-5 flex-grow" />
-             </div>
-             <div className="flex items-center space-x-3">
-               <Skeleton className="h-5 w-5 rounded-full" />
-               <Skeleton className="h-5 flex-grow" />
-             </div>
+            <div className="flex items-center space-x-3">
+              <Skeleton className="h-5 w-5 rounded-full" />
+              <Skeleton className="h-5 flex-grow" />
+            </div>
+            <div className="flex items-center space-x-3">
+              <Skeleton className="h-5 w-5 rounded-full" />
+              <Skeleton className="h-5 flex-grow" />
+            </div>
+            <div className="flex items-center space-x-3">
+              <Skeleton className="h-5 w-5 rounded-full" />
+              <Skeleton className="h-5 flex-grow" />
+            </div>
             {/* Explanation Skeleton */}
             <div className="mt-4 sm:mt-6 p-3 sm:p-4 bg-muted/30 rounded-md border">
               <Skeleton className="h-4 w-1/4 mb-2" />
               <Skeleton className="h-4 w-full" />
               <Skeleton className="h-4 w-3/4 mt-1" />
             </div>
-             {/* Source Skeleton */}
-             <div className="mt-4 pt-4 border-t">
-               <div className="flex items-center justify-between gap-2">
-                  <div>
-                    <Skeleton className="h-3 w-16 mb-1" />
-                    <Skeleton className="h-3 w-32" />
-                  </div>
-                 <Skeleton className="h-4 w-24" />
-               </div>
-             </div>
+            {/* Source Skeleton */}
+            <div className="mt-4 pt-4 border-t">
+              <div className="flex items-center justify-between gap-2">
+                <div>
+                  <Skeleton className="h-3 w-16 mb-1" />
+                  <Skeleton className="h-3 w-32" />
+                </div>
+                <Skeleton className="h-4 w-24" />
+              </div>
+            </div>
           </CardContent>
         </Card>
       ))}

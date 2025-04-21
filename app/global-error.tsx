@@ -1,19 +1,19 @@
-'use client'
+"use client";
 
-import Link from 'next/link'
-import { Button } from '@/components/ui/button'
-import { AlertTriangle } from 'lucide-react'
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { AlertTriangle } from "lucide-react";
 
 // Note: Error boundaries must be Client Components
 export default function GlobalError({
   error,
   reset,
 }: {
-  error: Error & { digest?: string }
-  reset: () => void
+  error: Error & { digest?: string };
+  reset: () => void;
 }) {
   // Log immediately
-  console.error('Global error:', error)
+  console.error("Global error:", error);
 
   return (
     <html lang="en" suppressHydrationWarning>
@@ -22,7 +22,8 @@ export default function GlobalError({
           <AlertTriangle className="mx-auto h-12 w-12 text-destructive" />
           <h1 className="text-2xl font-bold">Something went wrong</h1>
           <p className="text-muted-foreground">
-            An unexpected error occurred. Please try again or return to the homepage.
+            An unexpected error occurred. Please try again or return to the
+            homepage.
           </p>
           <div className="flex justify-center space-x-4">
             <Button variant="outline" onClick={() => reset()}>
@@ -35,5 +36,5 @@ export default function GlobalError({
         </div>
       </body>
     </html>
-  )
+  );
 }

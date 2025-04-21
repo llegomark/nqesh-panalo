@@ -1,7 +1,7 @@
 // lib/data.ts
-import 'server-only'; // Ensures this module only runs on the server
-import { categories, questions } from '@/data/reviewer-data';
-import type { Category, Question } from '@/lib/types';
+import "server-only"; // Ensures this module only runs on the server
+import { categories, questions } from "@/data/reviewer-data";
+import type { Category, Question } from "@/lib/types";
 // Removed unused notFound import
 
 /**
@@ -26,7 +26,7 @@ export function getCategory(categoryId: string): Category | undefined {
  */
 export function getCategoryQuestions(categoryId: string): Question[] {
   const categoryQuestions = questions.filter(
-    (question) => question.categoryId === categoryId
+    (question) => question.categoryId === categoryId,
   );
   return categoryQuestions;
 }
