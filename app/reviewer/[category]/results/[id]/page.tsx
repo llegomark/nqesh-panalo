@@ -12,11 +12,9 @@ import {
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Check, ExternalLink, X } from "lucide-react";
-// Remove unused Question import
 import { getCategory, getCategoryQuestions } from "@/lib/data";
 import { get } from "@/lib/db";
-
-// Remove unused UserAnswer type
+import { PerformanceInsights } from "@/components/performance-insights";
 
 // Define props for the dynamic route
 interface ResultsPageProps {
@@ -67,12 +65,13 @@ export default async function ResultsPage({ params }: ResultsPageProps) {
   // Combine questions with user answers
   const combinedResults = questions.map((q) => {
     const userAnswerData = answers.find(
-      (a: { questionId: string; userAnswer: string | null }) =>
+      (a: { questionId: string; userAnswer: string | null; timeSpent: number }) =>
         a.questionId === q.id,
     );
     return {
       ...q,
       userAnswer: userAnswerData ? userAnswerData.userAnswer : null,
+      timeSpent: userAnswerData ? userAnswerData.timeSpent : 0,
     };
   });
 
@@ -123,6 +122,16 @@ export default async function ResultsPage({ params }: ResultsPageProps) {
           </Link>
         </CardFooter>
       </Card>
+
+      {/* Performance Insights Section - NEW */}
+      <div className="space-y-2">
+        <h2 className="text-xl font-bold">Performance Insights</h2>
+        <p className="text-muted-foreground">
+          Visual analysis of your performance and time management
+        </p>
+      </div>
+      
+      <PerformanceInsights results={combinedResults} />
 
       {/* Question Review Section */}
       <div className="space-y-2">
@@ -192,6 +201,26 @@ export default async function ResultsPage({ params }: ResultsPageProps) {
                 <h3 className="font-semibold mb-2">Explanation:</h3>
                 <p className="text-foreground">{question.explanation}</p>
               </div>
+
+              {/* Time spent info - NEW */}
+              {question.timeSpent > 0 && (
+                <div className="mt-4 p-3 bg-muted/20 rounded-md border-l-4 border-primary/70">
+                  <h3 className="font-semibold text-sm mb-1">Time spent:</h3>
+                  <p className="text-sm font-mono">
+                    {question.timeSpent} seconds
+                    {question.timeSpent >= 110 && (
+                      <span className="text-amber-600 dark:text-amber-400 ml-2">
+                        (Nearly out of time)
+                      </span>
+                    )}
+                    {question.timeSpent === 120 && (
+                      <span className="text-red-600 dark:text-red-400 ml-2">
+                        (Time expired)
+                      </span>
+                    )}
+                  </p>
+                </div>
+              )}
 
               {/* Source section */}
               {question.source && (
