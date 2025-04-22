@@ -11,7 +11,9 @@ export async function PerformanceInsightsWrapper({
   const insightsData = await getInsightsData(resultId);
 
   if (!insightsData) {
-    throw new Error("Failed to load performance insights data");
+    throw new Error(
+      `Failed to load performance insights data for resultId: ${resultId}`,
+    );
   }
 
   return <PerformanceInsights results={insightsData} />;

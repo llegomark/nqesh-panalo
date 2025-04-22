@@ -24,7 +24,9 @@ export async function PerformanceSummary({
   const category = await getCategory(categoryId);
 
   if (!resultData || !category) {
-    throw new Error("Failed to load performance summary data");
+    throw new Error(
+      `Failed to load performance summary data for resultId: ${resultId} and categoryId: ${categoryId}`,
+    );
   }
 
   const { score, total } = resultData;
