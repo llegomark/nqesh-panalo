@@ -24,6 +24,22 @@ export interface PerformanceInsightsProps {
   results: (Question & { timeSpent: number })[];
 }
 
+// Define interface for pie chart label props
+interface PieChartLabelProps {
+  cx: number;
+  cy: number;
+  midAngle: number;
+  innerRadius: number;
+  outerRadius: number;
+  percent: number;
+  index: number;
+  name: string;
+  // Additional properties that might be available but not used
+  value?: number;
+  fill?: string;
+  stroke?: string;
+}
+
 // --- KEEP export HERE ---
 export function PerformanceInsights({ results }: PerformanceInsightsProps) {
   // Prepare data for time spent per question chart
@@ -79,6 +95,56 @@ export function PerformanceInsights({ results }: PerformanceInsightsProps) {
   const fastestTime = validTimes.length > 0 ? Math.min(...validTimes) : 0;
   const slowestTime = validTimes.length > 0 ? Math.max(...validTimes) : 0;
 
+  // Function to limit the number of ticks on the X-axis for large datasets
+  const getXAxisTicks = () => {
+    if (results.length <= 10) {
+      // For small datasets, show all ticks
+      return Array.from({ length: results.length }, (_, i) => i + 1);
+    } else if (results.length <= 30) {
+      // For medium datasets, show every other tick
+      return Array.from(
+        { length: Math.ceil(results.length / 2) },
+        (_, i) => i * 2 + 1,
+      );
+    } else {
+      // For large datasets, show only a few evenly spaced ticks
+      const step = Math.ceil(results.length / 10);
+      return Array.from({ length: Math.ceil(results.length / step) }, (_, i) =>
+        Math.min(i * step + 1, results.length),
+      );
+    }
+  };
+
+  // Determine whether to use custom label renderer or default labels based on data size
+  const shouldUseCustomLabel = results.length <= 20;
+
+  // Customize pie chart label rendering
+  const renderCustomizedLabel = (props: PieChartLabelProps) => {
+    const { cx, cy, midAngle, innerRadius, outerRadius, percent, index, name } =
+      props;
+    const RADIAN = Math.PI / 180;
+    const radius = innerRadius + (outerRadius - innerRadius) * 1.1;
+    const x = cx + radius * Math.cos(-midAngle * RADIAN);
+    const y = cy + radius * Math.sin(-midAngle * RADIAN);
+
+    // Only show label if segment is large enough (more than 10%)
+    if (percent < 0.1) return null;
+
+    return (
+      <text
+        x={x}
+        y={y}
+        fill={pieChartData[index].color}
+        textAnchor={x > cx ? "start" : "end"}
+        dominantBaseline="central"
+        fontSize="12px"
+        fontWeight="bold"
+      >
+        {`${name} ${(percent * 100).toFixed(0)}%`}
+      </text>
+    );
+  };
+
   return (
     // --- NO STYLE CHANGES HERE ---
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -98,10 +164,17 @@ export function PerformanceInsights({ results }: PerformanceInsightsProps) {
                 <XAxis
                   dataKey="name"
                   tick={{ fontSize: 12 }}
-                  interval={results.length > 10 ? 1 : 0}
+                  interval={
+                    results.length > 30
+                      ? Math.ceil(results.length / 10)
+                      : results.length > 10
+                        ? 1
+                        : 0
+                  }
                   angle={-45}
                   textAnchor="end"
                   height={40}
+                  ticks={getXAxisTicks()}
                 />
                 <YAxis
                   tick={{ fontSize: 12 }}
@@ -181,10 +254,10 @@ export function PerformanceInsights({ results }: PerformanceInsightsProps) {
                   outerRadius={70}
                   innerRadius={30}
                   dataKey="value"
-                  label={({ name, percent }) =>
-                    `${name} ${(percent * 100).toFixed(0)}%`
+                  label={
+                    shouldUseCustomLabel ? renderCustomizedLabel : undefined
                   }
-                  labelLine={false}
+                  labelLine={shouldUseCustomLabel ? false : true}
                 >
                   {pieChartData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.color} />
@@ -207,6 +280,7 @@ export function PerformanceInsights({ results }: PerformanceInsightsProps) {
                     return null;
                   }}
                 />
+                {!shouldUseCustomLabel && <Legend />}
               </PieChart>
             </ResponsiveContainer>
           </div>
@@ -246,10 +320,7 @@ export function PerformanceInsights({ results }: PerformanceInsightsProps) {
                   dataKey="x"
                   name="Question"
                   domain={[0.5, results.length + 0.5]}
-                  ticks={Array.from(
-                    { length: results.length },
-                    (_, i) => i + 1,
-                  )}
+                  ticks={getXAxisTicks()}
                   label={{
                     value: "Question Number",
                     position: "bottom",
