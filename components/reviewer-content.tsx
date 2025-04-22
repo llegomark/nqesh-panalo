@@ -1,7 +1,8 @@
 // FILE: components/reviewer-content.tsx
+// Ref: https://github.com/facebook/react/issues/18178#issuecomment-595846312
 "use client";
 
-import { useState, useTransition, useCallback, useEffect } from "react"; // Added useEffect
+import { useState, useTransition, useCallback, useEffect, useRef } from "react"; // Added dependencies
 import { useRouter } from "next/navigation";
 import {
   Card,
@@ -11,12 +12,28 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import type { Question, AnswerWithTime } from "@/lib/types"; // Added AnswerWithTime
+import type { Question, AnswerWithTime } from "@/lib/types";
 import { Timer } from "@/components/timer";
-import { ExternalLink, Loader2 } from "lucide-react";
+import { ExternalLink, Loader2, Flag } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
-import { saveReviewResults } from "@/lib/actions/reviewer"; // Import the Server Action
-import { toast } from "sonner"; // Import toast for notifications
+import { saveReviewResults } from "@/lib/actions/reviewer";
+import { reportQuestion } from "@/lib/actions/report";
+import { toast } from "sonner";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface ReviewerContentProps {
   categoryId: string;
@@ -37,42 +54,47 @@ export function ReviewerContent({
   const [isPending, startTransition] = useTransition();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // State for the report dialog
+  const [reportDialogOpen, setReportDialogOpen] = useState(false);
+  const [reportMessage, setReportMessage] = useState("");
+  const [isReporting, startReportTransition] = useTransition();
+
+  // Refs for avoiding state updates during render
+  const questionTimesRef = useRef<Record<string, number>>({});
+
   // State to track time spent on each question
-  const [questionTimes, setQuestionTimes] = useState<Record<string, number>>(
-    {},
-  );
+  const [, setQuestionTimes] = useState<Record<string, number>>({});
 
-  // ** Store startTime for accurate time calculation **
-  const [startTime, setStartTime] = useState<number>(Date.now());
+  // Memoized startTime ref to avoid re-renders
+  const startTimeRef = useRef<number>(Date.now());
 
-  // ** Reset startTime when question changes **
+  // Set the start time when question changes
   useEffect(() => {
-    setStartTime(Date.now());
+    startTimeRef.current = Date.now();
   }, [currentQuestionIndex]);
 
-  // Time update handler - simpler and more direct
-  const handleTimeUpdate = useCallback(() => {
-    const currentQuestion = questions[currentQuestionIndex];
-    if (
-      !currentQuestion ||
-      currentQuestionIndex < 0 ||
-      currentQuestionIndex >= questions.length ||
-      isAnswered ||
-      timeExpired
-    )
-      return; // Prevent updates after answering/time expiry
+  // Safe time update handler that won't trigger during render
+  const handleTimeUpdate = useCallback(
+    (timeSpent: number) => {
+      const currentQuestion = questions[currentQuestionIndex];
+      if (!currentQuestion) return;
 
-    // Calculate elapsed time *more accurately*
-    const elapsedSeconds = Math.round((Date.now() - startTime) / 1000);
-    const maxDuration = 120; // Assuming Timer duration is 120s
-    const timeSpent = Math.min(elapsedSeconds, maxDuration); // Cap at max duration
+      // Update the ref immediately
+      questionTimesRef.current = {
+        ...questionTimesRef.current,
+        [currentQuestion.id]: timeSpent,
+      };
 
-    // Store the time data for the current question
-    setQuestionTimes((prev) => ({
-      ...prev,
-      [currentQuestion.id]: timeSpent,
-    }));
-  }, [currentQuestionIndex, questions, isAnswered, timeExpired, startTime]);
+      // Schedule the state update
+      requestAnimationFrame(() => {
+        setQuestionTimes((prev) => ({
+          ...prev,
+          [currentQuestion.id]: timeSpent,
+        }));
+      });
+    },
+    [currentQuestionIndex, questions],
+  );
 
   const handleAnswerSelect = (answerId: string) => {
     if (isAnswered || timeExpired) return;
@@ -80,20 +102,29 @@ export function ReviewerContent({
     const currentQuestion = questions[currentQuestionIndex];
     const isCorrect = answerId === currentQuestion.correctAnswer;
 
-    // ** Calculate final time spent when answering **
-    const elapsedSeconds = Math.round((Date.now() - startTime) / 1000);
+    // Calculate time spent so far
+    const elapsedSeconds = Math.round(
+      (Date.now() - startTimeRef.current) / 1000,
+    );
     const maxDuration = 120; // Assuming Timer duration is 120s
     const finalTimeSpent = Math.min(elapsedSeconds, maxDuration);
 
+    // Update question state
     const updatedQuestions = questions.map((q, index) =>
       index === currentQuestionIndex ? { ...q, userAnswer: answerId } : q,
     );
-    setQuestions(updatedQuestions);
 
+    setQuestions(updatedQuestions);
     setSelectedAnswer(answerId);
     setIsAnswered(true);
 
-    // ** Store final time when answering **
+    // Update time spent using the ref first
+    questionTimesRef.current = {
+      ...questionTimesRef.current,
+      [currentQuestion.id]: finalTimeSpent,
+    };
+
+    // Then update state safely
     setQuestionTimes((prev) => ({
       ...prev,
       [currentQuestion.id]: finalTimeSpent,
@@ -118,50 +149,104 @@ export function ReviewerContent({
     }
   };
 
-  const handleTimeExpired = () => {
-    if (!isAnswered) {
-      const currentQuestion = questions[currentQuestionIndex];
-      // Mark as unanswered and store max time
-      const updatedQuestions = questions.map((q, index) =>
-        index === currentQuestionIndex ? { ...q, userAnswer: null } : q,
-      );
-      setQuestions(updatedQuestions);
+  const handleTimeExpired = useCallback(() => {
+    if (isAnswered) return;
+
+    const currentQuestion = questions[currentQuestionIndex];
+    if (!currentQuestion) return;
+
+    // Mark as unanswered
+    const updatedQuestions = questions.map((q, index) =>
+      index === currentQuestionIndex ? { ...q, userAnswer: null } : q,
+    );
+    setQuestions(updatedQuestions);
+
+    // Record max time using the ref first
+    questionTimesRef.current = {
+      ...questionTimesRef.current,
+      [currentQuestion.id]: 120,
+    };
+
+    // Then update state safely
+    requestAnimationFrame(() => {
       setQuestionTimes((prev) => ({
         ...prev,
-        [currentQuestion.id]: 120, // Record max time
+        [currentQuestion.id]: 120,
       }));
+      setTimeExpired(true);
+      setIsAnswered(true);
+    });
+  }, [currentQuestionIndex, questions, isAnswered]);
+
+  // Handle report submission
+  const handleReportSubmit = () => {
+    if (!reportMessage.trim()) {
+      toast.error("Please provide details about the issue with this question.");
+      return;
     }
-    setTimeExpired(true);
-    setIsAnswered(true); // Mark as answered to show explanation/next button
+
+    const currentQuestion = questions[currentQuestionIndex];
+
+    startReportTransition(async () => {
+      try {
+        const result = await reportQuestion({
+          questionId: currentQuestion.id,
+          categoryId: categoryId,
+          questionText: currentQuestion.question,
+          message: reportMessage,
+          timestamp: Date.now(),
+        });
+
+        if (result.success) {
+          toast.success(
+            "Question reported successfully. Thank you for your feedback.",
+          );
+          setReportDialogOpen(false);
+          setReportMessage("");
+        } else {
+          toast.error(
+            `Failed to submit report: ${result.error || "Unknown error"}`,
+          );
+        }
+      } catch (error) {
+        console.error("Error reporting question:", error);
+        toast.error("An unexpected error occurred. Please try again.");
+      }
+    });
   };
 
   const submitResults = async () => {
     setIsSubmitting(true);
-    toast.info("Submitting your results..."); // Add user feedback
+    toast.info("Submitting your results...");
 
-    // Ensure final time for the last question is recorded if answered quickly before moving on
+    // Ensure final time for the last question is recorded if answered quickly
     const lastQuestionId = questions[questions.length - 1]?.id;
-    if (lastQuestionId && !questionTimes[lastQuestionId] && isAnswered) {
-      const elapsedSeconds = Math.round((Date.now() - startTime) / 1000);
+    if (
+      lastQuestionId &&
+      !questionTimesRef.current[lastQuestionId] &&
+      isAnswered
+    ) {
+      const elapsedSeconds = Math.round(
+        (Date.now() - startTimeRef.current) / 1000,
+      );
       const maxDuration = 120;
-      questionTimes[lastQuestionId] = Math.min(elapsedSeconds, maxDuration);
+      questionTimesRef.current[lastQuestionId] = Math.min(
+        elapsedSeconds,
+        maxDuration,
+      );
     }
+
+    // Use the ref for getting all question times
+    const allQuestionTimes = { ...questionTimesRef.current };
 
     // Gather user answers with time data
     const userAnswers: AnswerWithTime[] = questions.map((q) => ({
       questionId: q.id,
-      userAnswer: q.userAnswer !== undefined ? q.userAnswer : null, // Ensure userAnswer is present or null
+      userAnswer: q.userAnswer !== undefined ? q.userAnswer : null,
       timeSpent:
-        questionTimes[q.id] ||
-        (q.userAnswer === undefined && timeExpired ? 120 : 0), // Default or max time
+        allQuestionTimes[q.id] ||
+        (q.userAnswer === undefined && timeExpired ? 120 : 0),
     }));
-
-    console.log("Submitting data via Server Action:", {
-      categoryId,
-      score,
-      total: questions.length,
-      answers: userAnswers,
-    });
 
     try {
       const result = await saveReviewResults({
@@ -172,26 +257,18 @@ export function ReviewerContent({
       });
 
       if (result.success && result.id) {
-        console.log("Results saved successfully, redirecting...");
         toast.success("Results submitted successfully!");
         router.push(`/reviewer/${categoryId}/results/${result.id}`);
       } else {
-        console.error(
-          "Error submitting results via Server Action:",
-          result.error,
-        );
         toast.error(
           `Failed to submit results: ${result.error || "Unknown error"}`,
         );
-        // Optionally, handle fallback to searchParams method here if needed,
-        // but the goal is to rely on the ID method.
       }
     } catch (error) {
       console.error("Error calling Server Action:", error);
       const errorMessage =
         error instanceof Error ? error.message : "Unknown error";
       toast.error(`An unexpected error occurred: ${errorMessage}`);
-      // Handle unexpected errors during the action call
     } finally {
       setIsSubmitting(false);
     }
@@ -221,10 +298,10 @@ export function ReviewerContent({
             </p>
           </div>
           <Timer
-            key={currentQuestionIndex} // Use key to force reset timer on question change
-            duration={120} // Example duration: 2 minutes
+            key={currentQuestionIndex}
+            duration={120}
             onExpire={handleTimeExpired}
-            onTimeUpdate={handleTimeUpdate} // Pass the simpler handler
+            onTimeUpdate={handleTimeUpdate}
             stopped={isAnswered || timeExpired}
           />
         </div>
@@ -233,7 +310,29 @@ export function ReviewerContent({
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-xl">{currentQuestion.question}</CardTitle>
+          <div className="flex justify-between items-start">
+            <CardTitle className="text-xl">
+              {currentQuestion.question}
+            </CardTitle>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setReportDialogOpen(true)}
+                    className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                    aria-label="Report question"
+                  >
+                    <Flag className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Report an issue with this question</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
         </CardHeader>
         <CardContent className="space-y-4">
           {currentQuestion.options.map((option) => {
@@ -323,6 +422,48 @@ export function ReviewerContent({
           </CardFooter>
         )}
       </Card>
+
+      {/* Report Question Dialog */}
+      <Dialog open={reportDialogOpen} onOpenChange={setReportDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Report Question</DialogTitle>
+            <DialogDescription>
+              Please explain why this question needs to be reviewed or updated.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <Textarea
+              placeholder="Describe the issue with this question (incorrect answer, unclear wording, etc.)"
+              value={reportMessage}
+              onChange={(e) => setReportMessage(e.target.value)}
+              className="min-h-[120px]"
+            />
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setReportDialogOpen(false);
+                setReportMessage("");
+              }}
+              disabled={isReporting}
+            >
+              Cancel
+            </Button>
+            <Button onClick={handleReportSubmit} disabled={isReporting}>
+              {isReporting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />{" "}
+                  Submitting...
+                </>
+              ) : (
+                "Submit Report"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

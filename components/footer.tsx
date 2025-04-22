@@ -8,7 +8,8 @@ export function Footer() {
         <div className="flex flex-col md:flex-row justify-between items-center gap-4">
           {/* Site Info */}
           <div className="text-xs md:text-sm text-muted-foreground text-center md:text-left">
-            © {new Date().getFullYear()} Eduventure Web Development Services. All rights reserved.
+            © {new Date().getFullYear()} Eduventure Web Development Services.
+            All rights reserved.
           </div>
 
           {/* Navigation Links */}

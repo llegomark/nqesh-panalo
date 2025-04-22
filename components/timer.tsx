@@ -18,68 +18,114 @@ export function Timer({
   stopped = false,
 }: TimerProps) {
   const [timeLeft, setTimeLeft] = useState(duration);
-  const [isRunning, setIsRunning] = useState(true);
-  const hasExpired = useRef(false);
+  const isRunningRef = useRef(true);
+  const hasExpiredRef = useRef(false);
   const startTimeRef = useRef(Date.now());
+  const onTimeUpdateRef = useRef(onTimeUpdate);
+  const onExpireRef = useRef(onExpire);
+  const stoppedRef = useRef(stopped);
 
-  // Handle stopping the timer and reporting time
+  // Update refs when props change - this avoids stale closures
   useEffect(() => {
-    if (stopped && isRunning) {
-      setIsRunning(false);
+    onTimeUpdateRef.current = onTimeUpdate;
+    onExpireRef.current = onExpire;
+    stoppedRef.current = stopped;
 
-      // Calculate time spent accurately based on actual elapsed time
-      const elapsedMs = Date.now() - startTimeRef.current;
-      const timeSpentSeconds = Math.min(Math.round(elapsedMs / 1000), duration);
+    // Handle stopping the timer when props change
+    if (stopped && isRunningRef.current) {
+      isRunningRef.current = false;
 
-      // Report time spent to parent component
-      if (onTimeUpdate) {
-        onTimeUpdate(timeSpentSeconds);
-      }
-    }
-  }, [stopped, duration, onTimeUpdate, isRunning]);
+      // Use setTimeout to ensure this doesn't happen during render
+      setTimeout(() => {
+        // Calculate time spent accurately
+        const elapsedMs = Date.now() - startTimeRef.current;
+        const timeSpentSeconds = Math.min(
+          Math.round(elapsedMs / 1000),
+          duration,
+        );
 
-  // Timer countdown effect
-  useEffect(() => {
-    if (!isRunning) return;
-
-    const timer = setInterval(() => {
-      setTimeLeft((prevTime) => {
-        if (prevTime <= 1) {
-          clearInterval(timer);
-          setIsRunning(false);
-
-          // When expired, report the full duration
-          if (onTimeUpdate) {
-            onTimeUpdate(duration);
-          }
-          return 0;
+        // Report time spent to parent component safely using the ref
+        if (onTimeUpdateRef.current) {
+          onTimeUpdateRef.current(timeSpentSeconds);
         }
-        return prevTime - 1;
-      });
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, [isRunning, duration, onTimeUpdate]);
-
-  // Handle timer expiration
-  useEffect(() => {
-    if (timeLeft === 0 && !hasExpired.current && !stopped) {
-      hasExpired.current = true;
-      onExpire();
+      }, 0);
     }
-  }, [timeLeft, onExpire, stopped]);
+  }, [stopped, duration, onTimeUpdate, onExpire]);
 
-  // Reset state on component mount/key change
+  // Main timer effect - only runs once on mount
   useEffect(() => {
-    hasExpired.current = false;
+    let timerInterval: NodeJS.Timeout | null = null;
+    let mounted = true;
+
+    // Start the timer
+    const startTimer = () => {
+      // Clear any existing interval
+      if (timerInterval) {
+        clearInterval(timerInterval);
+      }
+
+      // Create a new interval that updates timeLeft
+      timerInterval = setInterval(() => {
+        if (!mounted || stoppedRef.current || !isRunningRef.current) {
+          return;
+        }
+
+        // Update remaining time based on elapsed time since start
+        const elapsedSeconds = Math.floor(
+          (Date.now() - startTimeRef.current) / 1000,
+        );
+        const newTimeLeft = Math.max(0, duration - elapsedSeconds);
+
+        // Update the displayed time
+        setTimeLeft(newTimeLeft);
+
+        // Check if timer has expired
+        if (newTimeLeft === 0 && !hasExpiredRef.current) {
+          hasExpiredRef.current = true;
+          isRunningRef.current = false;
+
+          // Clear the interval
+          if (timerInterval) {
+            clearInterval(timerInterval);
+            timerInterval = null;
+          }
+
+          // Notify parent of expiration - use setTimeout to avoid render-phase updates
+          setTimeout(() => {
+            if (onTimeUpdateRef.current) {
+              onTimeUpdateRef.current(duration);
+            }
+            if (onExpireRef.current) {
+              onExpireRef.current();
+            }
+          }, 0);
+        }
+      }, 1000);
+    };
+
+    // Initialize the timer
+    startTimer();
+
+    // Cleanup on unmount
+    return () => {
+      mounted = false;
+      if (timerInterval) {
+        clearInterval(timerInterval);
+      }
+    };
+  }, [duration]); // Only depend on duration to avoid re-creating the interval
+
+  // Reset state when the key changes (new question)
+  useEffect(() => {
+    hasExpiredRef.current = false;
+    isRunningRef.current = true;
     startTimeRef.current = Date.now();
     setTimeLeft(duration);
-    setIsRunning(true);
 
     return () => {
-      hasExpired.current = false;
+      hasExpiredRef.current = false;
     };
-  }, [duration]);
+  }, [duration]); // This effect runs when the key changes via the duration prop changing
 
   // Format time as MM:SS
   const minutes = Math.floor(timeLeft / 60);
