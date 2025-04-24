@@ -1,6 +1,9 @@
+// FILE: app/reviewer/[category]/results/[id]/page.tsx
+
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { checkResultExists } from "@/lib/result-data";
+import { getCategory } from "@/lib/data";
 import { PerformanceSummary } from "@/components/performance-summary";
 import { PerformanceInsightsWrapper } from "@/components/performance-insights-wrapper";
 import { QuestionList } from "@/components/question-list";
@@ -18,22 +21,28 @@ interface ResultsPageProps {
 }
 
 export default async function ResultsPage({ params }: ResultsPageProps) {
-  // Await the params object before destructuring it
   const resolvedParams = await params;
   const { category: categoryId, id } = resolvedParams;
 
-  // Check if result exists without fetching all data
+  const category = getCategory(categoryId); // Fetch the category details
+
   const resultExists = await checkResultExists(id);
 
-  if (!resultExists) {
-    notFound(); // No results found for this ID
+  if (!resultExists || !category) {
+    // Also check if category was found
+    notFound();
   }
+
+  const categoryTitle = category.title; // Get the title
 
   return (
     <div className="container max-w-3xl mx-auto py-6 px-4 space-y-8">
       <div className="space-y-2">
         <h1 className="text-2xl font-bold">Your Results</h1>
-        <p className="text-muted-foreground">{categoryId} Reviewer Summary</p>
+        {/* Use the fetched category title */}
+        <p className="text-muted-foreground">
+          {categoryTitle} Reviewer Summary
+        </p>
       </div>
 
       {/* Performance Summary - Loads First */}
